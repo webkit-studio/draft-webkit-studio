@@ -181,6 +181,23 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
    a rovnou nabídnout merge. Nikdy nehlásit „hotovo" nad něčím, co leží
    jen na větvi.
 
+### Plátno je na dvou místech
+
+Od přechodu na Webflow Cloud existuje každé plátno dvakrát a **musí se měnit
+obojí**, jinak se úprava projeví jen na jednom z nich:
+
+| Cesta | Kdo to servíruje |
+|---|---|
+| `/<slug>/v<N>/{desktop,mobile}.html` | GitHub Pages – draft.webkit.studio |
+| `client/src/viewers/<slug>/v<N>/{desktop,mobile}.html` | Astro appka – webkit.studio/client |
+
+Assety plátna stejně tak: `/<slug>/v<N>/assets/` a `client/public/<slug>/v<N>/assets/`.
+Appka si plátno importuje přes `?raw`, takže se zapeče do buildu – bez commitu
+do `client/src/viewers/` se v ní nezmění nic. Nová verze se navíc musí zapsat
+do `client/src/lib/versions.ts` a `client/src/lib/viewer.ts`.
+
+Po nasazení ověřit obojí, ne jen jedno.
+
 ### Nový klient
 1. V Supabase založit/upravit uživatele klienta: heslo drží Lukáš mimo
    repo, `user_metadata` = `first_name`, `last_name`. Přístup k projektům
