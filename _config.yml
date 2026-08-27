@@ -1,0 +1,13 @@
+# Pages staví Jekyllem. Zdroje aplikace v client/ jsou .astro soubory, jejichž
+# hlavička --- ... --- není YAML, ale JavaScript – Jekyll na nich build shodí.
+# Aplikace se nasazuje mimo Pages, do buildu tedy nepatří.
+exclude:
+  - client
+  # výchozí seznam Jekyllu, který by se jinak přepsal
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
