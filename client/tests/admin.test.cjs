@@ -174,19 +174,24 @@ async function login(ctx, email) {
     }, novyEmail);
     check('neznámý projekt odmítnut', bad === 400, `stav ${bad}`);
 
-    /* admin nesmí měnit heslo jinému adminovi - tady je jen jeden, tak
-       ověříme aspoň to, že sám sobě smí */
-    const self = await page.evaluate(async () => {
+    /* Generovani hesla klientovi. Zamerne se NEtoci heslo adminovi samotnemu:
+       tenhle test by tim rozbil prihlaseni vsem testum, ktere bezi po nem -
+       coz se stalo a stalo to hledani. */
+    const rot = await page.evaluate(async (mail) => {
       const d = await (await fetch('/client/api/admin/users')).json();
-      const me = d.users.find((x) => x.email === 'lukas@webkit.studio');
+      const u = d.users.find((x) => x.email === mail);
       const r2 = await fetch('/client/api/admin/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: me.id })
+        body: JSON.stringify({ userId: u.id })
       });
-      return r2.status;
-    });
-    check('admin smí změnit heslo sám sobě', self === 200, `stav ${self}`);
+      return { status: r2.status, body: await r2.json() };
+    }, novyEmail);
+    check('admin vygeneruje nové heslo klientovi',
+      rot.status === 200 && typeof rot.body.password === 'string' && rot.body.password.length >= 12,
+      `stav ${rot.status}`);
+    /* nove heslo plati misto stareho */
+    if (rot.status === 200) novePwd = rot.body.password;
 
     await page.screenshot({ path: OUT + 'app-admin.png', fullPage: true });
     await ctx.close();
