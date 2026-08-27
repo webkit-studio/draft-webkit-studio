@@ -40,6 +40,29 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
+  /* Vlastni CSRF kontrola misto vestavene Astro.
+     Porovnava se Origin s hlavickou Host, tedy s tim, co prohlizec skutecne
+     videl - vestavena kontrola brala puvod pozadavku, ktery za Webflow Cloud
+     proxy nesedi a odmitala i legitimni prihlaseni. Kdyz to nesedi, hlaska
+     obe hodnoty vypise, aby se to priste nehledalo naslepo. */
+  if (context.request.method === 'POST') {
+    const origin = context.request.headers.get('origin');
+    const host = context.request.headers.get('host');
+    if (origin && host) {
+      let originHost = '';
+      try { originHost = new URL(origin).host; } catch { originHost = ''; }
+      if (originHost && originHost !== host) {
+        return noStore(
+          new Response(
+            `Požadavek přišel z jiného webu, a to se neprovádí.\n\n` +
+              `Origin: ${originHost}\nHost: ${host}`,
+            { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
+          )
+        );
+      }
+    }
+  }
+
   const user = context.locals.user;
 
   /* holé /client - rozcestí */
