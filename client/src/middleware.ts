@@ -40,22 +40,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  /* Vlastni CSRF kontrola misto vestavene Astro.
-     Porovnava se Origin s hlavickou Host, tedy s tim, co prohlizec skutecne
-     videl - vestavena kontrola brala puvod pozadavku, ktery za Webflow Cloud
-     proxy nesedi a odmitala i legitimni prihlaseni. Kdyz to nesedi, hlaska
-     obe hodnoty vypise, aby se to priste nehledalo naslepo. */
+  /* Vlastni CSRF kontrola.
+     Porovnavat Origin s hlavickou Host nejde: Worker za Webflow Cloud vidi
+     interni adresu (…cosmic.webflow.services), ne verejnou domenu. Presne
+     na tomhle selhavala i vestavena kontrola Astra a odmitala legitimni
+     prihlaseni. Rozhoduje proto seznam verejnych domen, pod kterymi
+     aplikace bezi.
+
+     Hlavni obranou proti CSRF zustava session cookie SameSite=Lax - ta se
+     pri pozadavku z ciziho webu vubec neposle. Tohle je druha vrstva. */
   if (context.request.method === 'POST') {
     const origin = context.request.headers.get('origin');
-    const host = context.request.headers.get('host');
-    if (origin && host) {
+    if (origin) {
       let originHost = '';
       try { originHost = new URL(origin).host; } catch { originHost = ''; }
-      if (originHost && originHost !== host) {
+      const host = context.request.headers.get('host') || '';
+      const povolene = [
+        'webkit.studio',
+        'www.webkit.studio',
+        'webkit-studio.webflow.io'
+      ];
+      const jeLokalni = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(originHost);
+      const sedisHostem = originHost !== '' && originHost === host;
+
+      if (!povolene.includes(originHost) && !jeLokalni && !sedisHostem) {
         return noStore(
           new Response(
-            `Požadavek přišel z jiného webu, a to se neprovádí.\n\n` +
-              `Origin: ${originHost}\nHost: ${host}`,
+            `Požadavek přišel z jiného webu, a to se neprovádí.\n\nOrigin: ${originHost}`,
             { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
           )
         );
