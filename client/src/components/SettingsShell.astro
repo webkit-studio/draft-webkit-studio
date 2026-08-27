@@ -1,0 +1,73 @@
+---
+/* Rám nastavení: boční panel s taby vlevo, obsah vpravo.
+ *
+ * Struktura je Relume Sidebar (svislá navigace, aktivní položka nese stav),
+ * vzhled z /design/webkit/: hairline místo stínu, radius 0, aktivní tab
+ * černý. Klient tu má jen Můj účet, admin navíc obě správy - skrytí taby
+ * není bezpečnostní prvek, na adresy hlídá middleware.
+ *
+ * Na úzkém okně se panel překlopí nad obsah do vodorovné řady, aby se
+ * nastavení dalo obsloužit i z telefonu. */
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  tab: 'account' | 'projects' | 'users';
+}
+const { title, tab } = Astro.props;
+const user = Astro.locals.user!;
+
+const taby = [
+  { id: 'account', href: '/client/settings/account', label: 'Můj účet', admin: false },
+  { id: 'projects', href: '/client/settings/projects', label: 'Správa projektů', admin: true },
+  { id: 'users', href: '/client/settings/users', label: 'Správa uživatelů', admin: true }
+].filter((t) => !t.admin || user.role === 'admin');
+---
+
+<Layout title={`${title} – Webkit.Studio`}>
+  <div class="mx-auto max-w-container px-5 py-8">
+    <h1 class="mb-6 text-h3 font-semibold">Nastavení</h1>
+
+    <div class="flex flex-col gap-6 md:flex-row md:gap-8">
+      <nav class="flex-none md:w-[220px]" aria-label="Nastavení">
+        <ul class="flex overflow-x-auto border-b border-gray-300 md:block md:border-b-0 md:border-t">
+          {taby.map((t) => (
+            <li class="flex-none md:border-b md:border-gray-300">
+              <a
+                href={t.href}
+                aria-current={t.id === tab ? 'page' : undefined}
+                class:list={[
+                  'block whitespace-nowrap px-4 py-3 text-small transition-colors duration-fast ease-out',
+                  t.id === tab
+                    ? 'bg-black font-semibold text-white'
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-black'
+                ]}>{t.label}</a
+              >
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="min-w-0 flex-1">
+        <p
+          id="stav"
+          class="mb-5 hidden border border-gray-300 px-4 py-3 text-small"
+          role="status"
+          aria-live="polite"
+        ></p>
+        <slot />
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  /* Hlášky na jednom místě pro všechny taby nastavení. */
+  const box = document.getElementById('stav');
+  (window as any).stav = (text: string, chyba = false) => {
+    if (!box) return;
+    box.textContent = text;
+    box.classList.remove('hidden');
+    box.style.borderColor = chyba ? '#ff4d00' : '#e2e2e2';
+  };
+</script>

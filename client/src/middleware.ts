@@ -15,7 +15,14 @@ import { getDb } from './lib/env';
 /* /api/setup musi byt verejny: bezi drive, nez existuje prvni ucet, takze
    se k nemu nikdo prihlasit nemuze. Chrani ho token a podminka prazdne
    databaze primo v endpointu. */
-const PUBLIC_PATHS = new Set(['/login', '/api/login', '/setup', '/api/setup']);
+/* /api/export/comments je verejny pro middleware, ne pro svet: overuje se
+   tokenem v hlavicce primo v handleru. Bez teto vyjimky by pozadavek skoncil
+   presmerovanim na login a k handleru se nedostal.
+   Cesta ma schvalne vic segmentu - jednosegmentovou by spolkla dynamicka
+   routa [project], jak se to uz stalo u /client/comments.js. */
+const PUBLIC_PATHS = new Set([
+  '/login', '/api/login', '/setup', '/api/setup', '/api/export/comments'
+]);
 
 function noStore(res: Response): Response {
   res.headers.set('Cache-Control', 'no-store');
@@ -114,6 +121,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
   if (path.startsWith('/admin') && user.role !== 'admin') {
     return noStore(context.redirect('/client/dashboard', 302));
+  }
+
+  /* Nastavení má klient taky, ale jen záložku Můj účet. Obě správy jsou
+     adresy jako každá jiná - schování záložky v UI nic nehlídá. */
+  if ((path.startsWith('/settings/projects') || path.startsWith('/settings/users')) && user.role !== 'admin') {
+    return noStore(context.redirect('/client/settings/account', 302));
   }
 
   const res = await next();

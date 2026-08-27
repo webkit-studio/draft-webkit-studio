@@ -1,0 +1,198 @@
+---
+/* Správa projektů. Jen pro admina - hlídá middleware, ne tahle stránka.
+ *
+ * Seznam je Relume Stacked List: jeden sloupec, řádky dělené hairlinou,
+ * akce se ukazují až při najetí, klik řádek rozbalí. První řádek je plus
+ * pro přidání, takže se nikam nemusí odbíhat. */
+import SettingsShell from '../../components/SettingsShell.astro';
+
+export const prerender = false;
+---
+
+<SettingsShell title="Správa projektů" tab="projects">
+  <ul id="seznam" class="border-t border-gray-300"></ul>
+  <p class="mt-4 text-tiny text-gray-500">
+    Smazání odebere projekt z rozcestníku i s komentáři. Složka s návrhem v repozitáři zůstane.
+  </p>
+</SettingsShell>
+
+<script>
+  import { ikona, radek, poleText, tlacitko, potvrd, mnozne, UZIVATEL, KOMENTAR } from '../../lib/ui';
+
+  const stav = (t: string, e = false) => (window as any).stav(t, e);
+  const seznam = document.getElementById('seznam')!;
+
+  const CHYBY: Record<string, string> = {
+    'invalid-slug': 'Slug smí být jen malá písmena, číslice a pomlčky.',
+    'reserved-slug': 'Tenhle slug patří systémové stránce, projekt ho mít nemůže.',
+    'slug-exists': 'Projekt s tímhle slugem už existuje.',
+    'name-required': 'Název je povinný.',
+    'not-found': 'Projekt neexistuje.',
+    'no-db': 'Databáze není připojená.'
+  };
+
+  async function api(body: unknown) {
+    const res = await fetch('/client/api/admin/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(CHYBY[data.error] || `Nepovedlo se (${data.error || res.status}).`);
+    return data;
+  }
+
+  interface Projekt {
+    slug: string;
+    name: string;
+    subtitle: string | null;
+    sort: number;
+    users: number;
+    comments: number;
+  }
+
+  /* --- řádek pro přidání --- */
+  function radekPridat(): HTMLLIElement {
+    const { li, hlava, obsah, telo, prepni } = radek();
+    hlava.className += ' text-accent';
+    const t = document.createElement('span');
+    t.className = 'font-semibold';
+    t.textContent = 'Přidat projekt';
+    obsah.append(ikona('plus'), t);
+
+    const form = document.createElement('form');
+    form.className = 'flex flex-col gap-3';
+    const slug = poleText('slug', 'Slug (část adresy, např. arbosis)', { required: true });
+    const name = poleText('name', 'Název', { required: true });
+    const sub = poleText('subtitle', 'Podtitulek (nepovinný)');
+    form.append(slug.wrap, name.wrap, sub.wrap);
+    const akce = document.createElement('div');
+    akce.className = 'flex gap-2';
+    const ulozit = tlacitko('Založit projekt', 'primary');
+    ulozit.type = 'submit';
+    akce.appendChild(ulozit);
+    form.appendChild(akce);
+    telo.appendChild(form);
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      ulozit.disabled = true;
+      try {
+        await api({
+          akce: 'pridat',
+          slug: slug.input.value.trim().toLowerCase(),
+          name: name.input.value,
+          subtitle: sub.input.value
+        });
+        stav(`Projekt ${name.input.value.trim()} založen.`);
+        form.reset();
+        prepni(false);
+        await nacti();
+      } catch (e: any) {
+        stav(e.message, true);
+      } finally {
+        ulozit.disabled = false;
+      }
+    });
+
+    return li;
+  }
+
+  /* --- řádek projektu --- */
+  function radekProjektu(p: Projekt): HTMLLIElement {
+    const { li, obsah, telo, akce, prepni } = radek();
+
+    const ident = document.createElement('span');
+    ident.className = 'min-w-0 flex-1';
+    const nazev = document.createElement('span');
+    nazev.className = 'font-semibold';
+    nazev.textContent = p.name;
+    const slug = document.createElement('span');
+    slug.className = 'ml-3 text-tiny text-gray-500';
+    slug.textContent = '/' + p.slug;
+    ident.append(nazev, slug);
+    if (p.subtitle) {
+      const sub = document.createElement('span');
+      sub.className = 'block truncate text-tiny text-gray-500';
+      sub.textContent = p.subtitle;
+      ident.appendChild(sub);
+    }
+    obsah.appendChild(ident);
+
+    const pocty = document.createElement('span');
+    pocty.className = 'hidden flex-none text-tiny text-gray-500 sm:block';
+    pocty.textContent =
+      `${p.users} ${mnozne(p.users, UZIVATEL)} · ${p.comments} ${mnozne(p.comments, KOMENTAR)}`;
+    obsah.appendChild(pocty);
+
+    const upravit = tlacitko(ikona('pencil'), 'icon', 'Upravit projekt');
+    upravit.addEventListener('click', (e) => { e.stopPropagation(); prepni(); });
+    akce.appendChild(upravit);
+
+    const smazat = tlacitko(ikona('trash'), 'icon', 'Smazat projekt');
+    smazat.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const co = p.comments ? ` Zmizí i ${p.comments} ${mnozne(p.comments, KOMENTAR)}.` : '';
+      if (!potvrd(`Smazat projekt ${p.name}?${co}`)) return;
+      try {
+        await api({ akce: 'smazat', slug: p.slug });
+        stav(`Projekt ${p.name} smazán.`);
+        await nacti();
+      } catch (err: any) {
+        stav(err.message, true);
+      }
+    });
+    akce.appendChild(smazat);
+
+    /* rozbalený obsah: úprava názvu a podtitulku */
+    const form = document.createElement('form');
+    form.className = 'flex flex-col gap-3';
+    const name = poleText('name', 'Název', { required: true, value: p.name });
+    const sub = poleText('subtitle', 'Podtitulek (nepovinný)', { value: p.subtitle || '' });
+    form.append(name.wrap, sub.wrap);
+
+    const pozn = document.createElement('p');
+    pozn.className = 'text-tiny text-gray-500';
+    pozn.textContent =
+      'Slug se nemění – visí na něm adresa, přidělené přístupy i komentáře. Jiný slug znamená nový projekt.';
+    form.appendChild(pozn);
+
+    const ulozit = tlacitko('Uložit', 'primary');
+    ulozit.type = 'submit';
+    const rada = document.createElement('div');
+    rada.className = 'flex gap-2';
+    rada.appendChild(ulozit);
+    form.appendChild(rada);
+    telo.appendChild(form);
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      ulozit.disabled = true;
+      try {
+        await api({ akce: 'upravit', slug: p.slug, name: name.input.value, subtitle: sub.input.value });
+        stav(`Projekt ${name.input.value.trim()} uložen.`);
+        await nacti();
+      } catch (e: any) {
+        stav(e.message, true);
+      } finally {
+        ulozit.disabled = false;
+      }
+    });
+
+    return li;
+  }
+
+  async function nacti() {
+    const res = await fetch('/client/api/admin/projects');
+    if (!res.ok) {
+      stav('Seznam projektů se nepodařilo načíst.', true);
+      return;
+    }
+    const data = (await res.json()) as { projects: Projekt[] };
+    seznam.innerHTML = '';
+    seznam.appendChild(radekPridat());
+    for (const p of data.projects) seznam.appendChild(radekProjektu(p));
+  }
+
+  nacti();
+</script>

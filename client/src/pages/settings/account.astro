@@ -1,0 +1,148 @@
+---
+/* Můj účet. Jediný tab, který vidí i klient.
+ *
+ * Heslo: uložené heslo přečíst nelze, je to jednosměrný hash - ani admin ho
+ * nezobrazí. Kdo svoje heslo zná, přepíše si ho tady; kdo ho zapomněl, dostane
+ * od admina vygenerované nové. Třetí cesta neexistuje a je to tak správně. */
+import SettingsShell from '../../components/SettingsShell.astro';
+import { initial, fullName } from '../../lib/db';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const pismeno = initial(user);
+const jmeno = fullName(user);
+---
+
+<SettingsShell title="Můj účet" tab="account">
+  <section class="border border-gray-300">
+    <header class="flex items-center gap-4 border-b border-gray-300 px-5 py-4">
+      <span
+        class="flex h-12 w-12 flex-none items-center justify-center bg-black text-h5 font-bold leading-none text-white"
+        aria-hidden="true">{pismeno}</span>
+      <div class="min-w-0">
+        <div class="truncate font-semibold">{jmeno}</div>
+        <div class="truncate text-small text-gray-500">{user.email}</div>
+        <div class="text-tiny uppercase tracking-[0.08em] text-gray-500">
+          {user.role === 'admin' ? 'Administrátor' : 'Klient'}
+        </div>
+      </div>
+    </header>
+
+    <form id="f-jmeno" class="px-5 py-5">
+      <h2 class="mb-4 text-h5 font-semibold">Jméno</h2>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <label class="flex-1">
+          <span class="mb-1 block text-tiny text-gray-500">Jméno</span>
+          <input
+            name="firstName"
+            type="text"
+            value={user.firstName || ''}
+            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
+          />
+        </label>
+        <label class="flex-1">
+          <span class="mb-1 block text-tiny text-gray-500">Příjmení</span>
+          <input
+            name="lastName"
+            type="text"
+            value={user.lastName || ''}
+            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
+          />
+        </label>
+      </div>
+      <button
+        type="submit"
+        class="mt-4 h-11 bg-black px-5 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+        >Uložit jméno</button
+      >
+    </form>
+  </section>
+
+  <section class="mt-6 border border-gray-300">
+    <form id="f-heslo" class="px-5 py-5">
+      <h2 class="mb-2 text-h5 font-semibold">Heslo</h2>
+      <p class="mb-4 text-small text-gray-500">
+        Uložené heslo nejde zobrazit – v databázi je jen jeho otisk. Zapomenuté heslo
+        nahradí admin novým.
+      </p>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <label class="flex-1">
+          <span class="mb-1 block text-tiny text-gray-500">Současné heslo</span>
+          <input
+            name="current"
+            type="password"
+            autocomplete="current-password"
+            required
+            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
+          />
+        </label>
+        <label class="flex-1">
+          <span class="mb-1 block text-tiny text-gray-500">Nové heslo (min. 12 znaků)</span>
+          <input
+            name="next"
+            type="password"
+            autocomplete="new-password"
+            minlength="12"
+            required
+            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
+          />
+        </label>
+      </div>
+      <button
+        type="submit"
+        class="mt-4 h-11 bg-black px-5 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+        >Změnit heslo</button
+      >
+    </form>
+  </section>
+</SettingsShell>
+
+<script>
+  const stav = (t: string, e = false) => (window as any).stav(t, e);
+
+  const CHYBY: Record<string, string> = {
+    'wrong-password': 'Současné heslo nesouhlasí.',
+    'password-too-short': 'Nové heslo musí mít aspoň 12 znaků.',
+    'name-too-long': 'Jméno je moc dlouhé.',
+    'no-db': 'Databáze není připojená.',
+    'unauthorized': 'Session vypršela, přihlas se znovu.'
+  };
+
+  async function posli(body: unknown) {
+    const res = await fetch('/client/api/account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(CHYBY[data.error] || `Nepovedlo se (${data.error || res.status}).`);
+    return data;
+  }
+
+  document.getElementById('f-jmeno')!.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target as HTMLFormElement);
+    try {
+      await posli({ akce: 'jmeno', firstName: fd.get('firstName'), lastName: fd.get('lastName') });
+      stav('Jméno uloženo.');
+      /* jméno je i v hlavičce - ať sedí bez ručního obnovení */
+      setTimeout(() => location.reload(), 600);
+    } catch (e: any) {
+      stav(e.message, true);
+    }
+  });
+
+  document.getElementById('f-heslo')!.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const form = ev.target as HTMLFormElement;
+    const fd = new FormData(form);
+    try {
+      await posli({ akce: 'heslo', current: fd.get('current'), next: fd.get('next') });
+      form.reset();
+      stav('Heslo změněno. Ostatní přihlášení tohoto účtu byla ukončena.');
+    } catch (e: any) {
+      stav(e.message, true);
+    }
+  });
+</script>

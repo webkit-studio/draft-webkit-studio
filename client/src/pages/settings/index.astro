@@ -1,0 +1,5 @@
+---
+/* /client/settings nemá vlastní obsah - první tab je Můj účet. */
+export const prerender = false;
+return Astro.redirect('/client/settings/account', 302);
+---
