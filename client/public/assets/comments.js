@@ -98,6 +98,12 @@
     'transition:background var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1)),',
     'color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
     '.cbadd:hover,.cbadd[aria-pressed="true"]{background:var(--black,#000);color:var(--white,#fff)}',
+    /* Zapnuty rezim musi byt videt na prvni pohled: barva se prevrati a
+       vedle popisku dycha ctverecek. Rezim ted zustava zapnuty i po
+       pridani komentare, takze staticka barva uz sama nestaci. */
+    '.cdot{display:none;width:6px;height:6px;flex:none;background:currentColor}',
+    '[aria-pressed="true"] > .cdot{display:block;animation:cdotpulse 1.4s var(--ease-out,cubic-bezier(0.2,0,0,1)) infinite}',
+    '@keyframes cdotpulse{0%,100%{opacity:1}50%{opacity:.2}}',
     '.cbadd:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     /* piny nad plátnem */
     '.cpins{position:fixed;inset:0;z-index:15;pointer-events:none}',
@@ -141,6 +147,7 @@
     'font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;',
     'transition:background var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1)),',
     'color var(--dur-fast,120ms) var(--ease-out,cubic-bezier(0.2,0,0,1))}',
+    '.cadd{display:inline-flex;align-items:center;justify-content:center;gap:8px}',
     '.cadd:hover,.cadd[aria-pressed="true"]{background:var(--accent,#ff4d00);color:var(--accent-ink,#000)}',
     '.cadd:focus-visible{outline:2px solid var(--focus-ring,#ff4d00);outline-offset:2px}',
     '.ctools-row{display:flex;gap:8px}',
@@ -268,7 +275,7 @@
     '.ccomp{left:16px!important;right:16px;width:auto;top:auto!important;bottom:16px}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '.cpanel,.cpin,.cbtn,.cbadd,.cadd,.cprim,.cghost,.cpanel-x,.cico,.cres .ctick',
+    '.cpanel,.cpin,.cbtn,.cbadd,.cadd,.cprim,.cghost,.cpanel-x,.cico,.cres .ctick,.cdot',
     '{transition:none!important;animation:none!important}',
     '}'
   ].join('');
@@ -282,6 +289,11 @@
   var numbers = {};         /* id kořene → číslo pinu */
   var panelOpen = false;
   var picking = false;
+  /* Rezim pridavani drzi dokud ho uzivatel sam nevypne. `picking` rika, jestli
+     platno prave chyta klepnuti; `pickSticky`, jestli je rezim zapnuty. Kdyz
+     je otevreny composer, rezim je zapnuty, ale platno se na chvili odmlci -
+     jinak by klepnuti do formulare zaklidalo dalsi pin. */
+  var pickSticky = false;
   var draft = null;         /* {section,x,y} při otevřeném composeru */
   var replyFor = null;      /* id kořene s otevřenou odpovědí */
   var replyText = '';
@@ -1017,7 +1029,27 @@
   }
 
   function enterPick() {
+    pickSticky = true;
+    markPick(true);
     if (picking) return;
+    picking = true;
+    catchLayer.classList.add('on');
+    pinsLayer.classList.add('coff');
+    schedule();
+  }
+
+  /* Composer je otevřený – plátno musí na chvíli přestat chytat klepnutí,
+     ale režim zůstává zapnutý a tlačítko svítí dál. */
+  function pausePick() {
+    if (!picking) return;
+    picking = false;
+    catchLayer.classList.remove('on');
+    pinsLayer.classList.remove('coff');
+    clearHl();
+  }
+
+  function resumePick() {
+    if (!pickSticky || picking) return;
     picking = true;
     catchLayer.classList.add('on');
     pinsLayer.classList.add('coff');
@@ -1025,18 +1057,22 @@
     schedule();
   }
 
+  /* Skutečné vypnutí režimu. Jen odsud – ne po uložení komentáře. */
   function exitPick() {
+    pickSticky = false;
+    markPick(false);
+    clearHl();
     if (!picking) return;
     picking = false;
     catchLayer.classList.remove('on');
     pinsLayer.classList.remove('coff');
-    markPick(false);
-    clearHl();
   }
 
-  /* Zapnutí/vypnutí režimu přidávání – z lišty i z panelu. */
+  /* Zapnutí/vypnutí režimu přidávání – z lišty i z panelu. Řídí se podle
+     pickSticky, ne podle picking: při otevřeném composeru je režim pořád
+     zapnutý, jen se plátno odmlčelo, a klik na tlačítko ho má vypnout. */
   function togglePick() {
-    if (picking) { exitPick(); return; }
+    if (pickSticky) { exitPick(); closeComposer(); return; }
     closeComposer();
     if (narrow.matches) closePanel();
     enterPick();
@@ -1045,6 +1081,7 @@
   /* ---------- composer nového komentáře ---------- */
 
   function openComposer(px, py, message) {
+    pausePick();
     comp.classList.add('on');
     compErr.textContent = message || '';
     compErr.hidden = !message;
@@ -1066,6 +1103,9 @@
       compErr.hidden = true;
       schedule();
     }
+    /* Zpátky do přidávání – po uloženém i po zahozeném komentáři. Vypne to
+       až tlačítko nebo Escape. */
+    resumePick();
   }
 
   function submitRoot() {
@@ -1265,6 +1305,7 @@
     barAdd.setAttribute('aria-pressed', 'false');
     /* na úzkém okně zůstane vidět jen „Přidat", název pro čtečky je celý */
     barAdd.setAttribute('aria-label', 'Přidat komentář');
+    barAdd.appendChild(el('span', 'cdot'));
     barAdd.appendChild(el('span', null, 'Přidat'));
     barAdd.appendChild(el('span', 'cbadd-l', 'komentář'));
     group.appendChild(barAdd);
@@ -1294,7 +1335,9 @@
 
     var tools = el('div', 'cpanel-tools');
     var toolsRow = el('div', 'ctools-row');
-    addBtn = el('button', 'cadd', 'Přidat komentář');
+    addBtn = el('button', 'cadd');
+    addBtn.appendChild(el('span', 'cdot'));
+    addBtn.appendChild(el('span', null, 'Přidat komentář'));
     addBtn.type = 'button';
     addBtn.setAttribute('aria-pressed', 'false');
     toolsRow.appendChild(addBtn);
@@ -1385,7 +1428,6 @@
         y: Math.min(1, Math.max(0, (y - r.top) / r.height))
       };
       lastPoint = { x: x, y: y };
-      exitPick();
       compText.value = '';
       openComposer(x, y);
       render();

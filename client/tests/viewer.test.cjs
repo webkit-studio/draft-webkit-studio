@@ -76,6 +76,32 @@ const iphone = { viewport: { width: 393, height: 852 }, isMobile: true, hasTouch
     const err = await page.locator('.ccomp .cerr').textContent().catch(() => '');
     check('bez chybové hlášky', !err || err.trim() === '', (err || '').slice(0, 60));
 
+    /* Rezim pridavani se po ulozeni NEvypina - jinak se pri pripominkovani
+       musi tlacitko mackat po kazdem komentari znovu. */
+    check('režim přidávání zůstal zapnutý',
+      (await page.locator('[data-comments-add]').getAttribute('aria-pressed')) === 'true');
+    check('pulzující tečka je vidět', await page.locator('[data-comments-add] .cdot').isVisible());
+
+    const t2 = await page.evaluate(() => {
+      for (const s of document.querySelectorAll('#frame [data-screen-label]')) {
+        const r = s.getBoundingClientRect();
+        const cy = r.top + Math.min(Math.max(r.height / 2, 20), 300);
+        if (cy > 100 && cy < window.innerHeight - 20) return { x: r.left + r.width / 4, y: cy };
+      }
+      return null;
+    });
+    await page.mouse.click(t2.x, t2.y);
+    await page.waitForTimeout(500);
+    check('druhý komentář jde přidat bez dalšího kliknutí na tlačítko',
+      (await page.locator('.ccomp.on').count()) === 1);
+
+    /* Vypne to az tlacitko. */
+    await page.click('[data-comments-add]');
+    await page.waitForTimeout(300);
+    check('tlačítko režim vypne',
+      (await page.locator('[data-comments-add]').getAttribute('aria-pressed')) === 'false');
+    check('composer se zavřel', (await page.locator('.ccomp.on').count()) === 0);
+
     await page.screenshot({ path: OUT + 'app-viewer-desktop.png' });
     await ctx.close();
   }
