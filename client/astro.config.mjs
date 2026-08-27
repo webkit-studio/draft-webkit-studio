@@ -10,6 +10,15 @@ export default defineConfig({
   base: '/client',
   trailingSlash: 'never',
   output: 'server',
+
+  /* Vestavena CSRF kontrola Astra porovnava hlavicku Origin s puvodem
+     pozadavku. Za Webflow Cloud proxy jí to nesedi a odmita i legitimni
+     prihlaseni ("Cross-site POST form submissions are forbidden").
+     Vypina se tady a nahrazuje vlastni kontrolou v middleware, ktera
+     porovnava Origin s hlavickou Host - tedy s tim, co prohlizec skutecne
+     videl. Session cookie je navic SameSite=Lax, takze se pri pozadavku
+     z ciziho webu vubec neposle. */
+  security: { checkOrigin: false },
   adapter: cloudflare({
     platformProxy: { enabled: true }
   }),
