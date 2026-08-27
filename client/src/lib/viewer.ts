@@ -54,6 +54,12 @@ export function renderViewer(o: ViewerOptions): string | null {
     .replace(/\s*<script src="\/assets\/config\.js"><\/script>/g, '')
     .replace(/\s*<script src="\/assets\/gate\.js"[^>]*><\/script>/g, '');
 
+  /* 2a) Favicony miri na koren domeny, kde je Webflow web, ne aplikace.
+         Stejna trida chyby jako u skriptu - absolutni cesta mimo mount.
+         Zamerne jen favicony: sirsi nahrada by prepsala i /assets/comments.js,
+         kterou jeste hleda krok 5, a komentare by se neprilozily. */
+  html = html.replace(/href="\/assets\/(favicon\.[a-z]+)"/g, 'href="/client/assets/$1"');
+
   /* 2) Odkazy lišty na nové cesty. */
   html = html
     .replace(new RegExp(`href="/${o.project}/"`, 'g'), `href="${base}"`)
