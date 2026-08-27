@@ -9,7 +9,11 @@
  * takže ani únik databáze nikomu nedá platnou session.
  */
 
-const ITERATIONS = 210_000;
+/* Workers maji na request omezeny CPU cas a PBKDF2 je zamerne drahy.
+   210k vychazelo na ~100 ms CPU za hash, coz je pri dvou hashich v jednom
+   pozadavku riskantni. Pocet iteraci je ulozeny v hashi, takze zmena
+   nerozbije uz ulozena hesla. */
+const ITERATIONS = 100_000;
 const KEY_LEN = 32;
 const SALT_LEN = 16;
 

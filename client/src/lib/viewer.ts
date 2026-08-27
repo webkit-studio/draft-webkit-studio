@@ -37,6 +37,7 @@ export interface ViewerOptions {
   project: string;
   version: string;
   view: 'desktop' | 'mobile';
+  userId: string;
   userName: string;
   isAdmin: boolean;
 }
@@ -71,18 +72,25 @@ export function renderViewer(o: ViewerOptions): string | null {
         přihlášený už tím, že se sem dostal. */
   html = html.replace(/<button class="cbtn" type="button" data-comments-toggle hidden>/, '<button class="cbtn" type="button" data-comments-toggle>');
 
-  /* 5) Napojení komentářů na nové API. */
+  /* 5) Napojení komentářů.
+        Skript si cte nastaveni z atributu pres document.currentScript, takze
+        NESMI byt type="module" - tam je currentScript null a skript by se
+        rovnou ukoncil. Bubliny data-tip drzel driv gate.js, ktery uz
+        neexistuje; jsou vyriznute do tip.js. */
   const cfg =
     `<script>window.WKS = ${JSON.stringify({
       project: o.project,
       version: o.version,
       view: o.view,
+      userId: o.userId,
       userName: o.userName,
       isAdmin: o.isAdmin
     })};</script>`;
   html = html.replace(
     /<script src="\/assets\/comments\.js"[^>]*><\/script>/,
-    `${cfg}<script type="module" src="/client/comments.js"></script>`
+    `${cfg}<script src="/client/tip.js"></script>` +
+      `<script src="/client/comments.js" data-project="${o.project}" ` +
+      `data-version="${o.version}" data-view="${o.view}"></script>`
   );
 
   return html;
