@@ -1,0 +1,218 @@
+---
+/* Správa uživatelů. Jen pro admina - hlídá middleware, ne tahle stránka.
+ *
+ * Chování hesla zůstává jako dřív: uložené heslo přečíst nelze, protože je
+ * to jednosměrný hash. Pole je v řádku vždycky - dokud se heslo nevygeneruje,
+ * jsou v něm neaktivní tečky. Po vygenerování zůstane v poli do zavření
+ * stránky: najetím se odkryje, kliknutím zkopíruje. Nikam se neukládá. */
+import Layout from '../components/Layout.astro';
+---
+
+<Layout title="Správa – Webkit.Studio">
+  <div class="mx-auto max-w-container px-5 py-8">
+    <h1 class="mb-6 text-h3 font-semibold">Správa</h1>
+
+    <p id="stav" class="mb-4 hidden border border-gray-300 px-4 py-3 text-small" role="status"></p>
+
+    <section class="mb-8 border border-gray-300 p-5">
+      <h2 class="mb-4 text-h5 font-semibold">Přidat uživatele</h2>
+      <form id="novy" class="flex flex-wrap items-center gap-2">
+        <input
+          class="h-8 min-w-[220px] flex-1 border border-gray-300 px-3 text-small outline-none placeholder:text-gray-500"
+          name="email" type="email" placeholder="E-mail" required aria-label="E-mail" />
+        <input
+          class="h-8 w-[150px] border border-gray-300 px-3 text-small outline-none placeholder:text-gray-500"
+          name="firstName" type="text" placeholder="Jméno" aria-label="Jméno" />
+        <input
+          class="h-8 w-[150px] border border-gray-300 px-3 text-small outline-none placeholder:text-gray-500"
+          name="lastName" type="text" placeholder="Příjmení" aria-label="Příjmení" />
+        <button
+          type="submit"
+          class="h-8 bg-black px-4 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink">
+          Přidat
+        </button>
+      </form>
+    </section>
+
+    <div id="seznam" class="border-t border-gray-300"></div>
+  </div>
+</Layout>
+
+<script>
+  const stav = document.getElementById('stav')!;
+  const seznam = document.getElementById('seznam')!;
+
+  /* Vygenerovaná hesla drží jen tahle stránka, do jejího zavření. */
+  const hesla = new Map<string, string>();
+
+  function zprava(text: string, chyba = false) {
+    stav.textContent = text;
+    stav.classList.remove('hidden');
+    stav.style.borderColor = chyba ? '#ff4d00' : '#e2e2e2';
+  }
+
+  async function api(url: string, body?: unknown) {
+    const res = await fetch(url, {
+      method: body ? 'POST' : 'GET',
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(data.error || `stav ${res.status}`), { data, status: res.status });
+    return data;
+  }
+
+  const CHYBY: Record<string, string> = {
+    'invalid-email': 'Neplatný e-mail.',
+    'email-exists': 'Účet s tímto e-mailem už existuje.',
+    'forbidden': 'Heslo jinému adminovi měnit nelze.',
+    'admin-has-all': 'Admin má přístup ke všem projektům z definice role.',
+    'unknown-project': 'Neznámý projekt.',
+    'no-db': 'Databáze není připojená.',
+    'not-found': 'Uživatel neexistuje.'
+  };
+  const popisChyby = (e: any) => CHYBY[e?.message] || `Nepovedlo se (${e?.message || 'neznámá chyba'}).`;
+
+  function jmeno(u: any) {
+    const cele = [u.firstName, u.lastName].filter(Boolean).join(' ');
+    return cele || '[bez jména]';
+  }
+
+  function vykresli(data: any) {
+    seznam.innerHTML = '';
+    for (const u of data.users) {
+      const row = document.createElement('div');
+      row.className = 'border-b border-gray-300 py-4';
+
+      /* první řada: jméno, e-mail, heslo + obnovení */
+      const head = document.createElement('div');
+      head.className = 'flex flex-wrap items-center gap-3';
+
+      const ident = document.createElement('div');
+      ident.className = 'flex-1 min-w-[240px]';
+      ident.innerHTML =
+        `<span class="font-semibold">${jmeno(u)}</span>` +
+        (u.role === 'admin' ? ` <span class="ml-2 text-tiny uppercase tracking-[0.08em] text-accent">admin</span>` : '') +
+        `<span class="ml-3 text-small text-gray-500">${u.email}</span>`;
+      head.appendChild(ident);
+
+      /* jeden segment: pole hesla + tlačítko, hairline rámeček, výška 32 px */
+      const seg = document.createElement('div');
+      seg.className = 'flex h-8 items-stretch border border-gray-300';
+
+      const pw = document.createElement('input');
+      pw.readOnly = true;
+      pw.className = 'h-full w-[190px] border-0 px-3 text-small outline-none';
+      const znamé = hesla.get(u.id);
+      if (znamé) {
+        pw.type = 'password';
+        pw.value = znamé;
+        pw.classList.add('cursor-pointer');
+        pw.setAttribute('data-tip', 'Kliknutím zkopírovat');
+        pw.addEventListener('mouseenter', () => (pw.type = 'text'));
+        pw.addEventListener('mouseleave', () => (pw.type = 'password'));
+        pw.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(znamé);
+            zprava('Heslo zkopírováno.');
+          } catch {
+            zprava('Kopírování se nepovedlo, heslo vyber ručně.', true);
+          }
+        });
+      } else {
+        pw.type = 'password';
+        pw.value = '••••••••••••';
+        pw.disabled = true;
+        pw.className += ' bg-gray-100 text-gray-500';
+        pw.title = 'Uložené heslo přečíst nelze';
+      }
+      seg.appendChild(pw);
+
+      const gen = document.createElement('button');
+      gen.type = 'button';
+      gen.className =
+        'flex h-full w-9 items-center justify-center border-l border-gray-300 text-small transition-colors duration-fast ease-out hover:bg-black hover:text-white';
+      gen.title = 'Generovat nové heslo';
+      gen.setAttribute('aria-label', `Generovat nové heslo pro ${u.email}`);
+      gen.textContent = '⟳';
+      gen.addEventListener('click', async () => {
+        gen.disabled = true;
+        try {
+          const r = await api('/client/api/admin/password', { userId: u.id });
+          hesla.set(u.id, r.password);
+          zprava(`Nové heslo pro ${u.email} vygenerováno. Zůstane tu do zavření stránky.`);
+          await nacti();
+        } catch (e) {
+          zprava(popisChyby(e), true);
+          gen.disabled = false;
+        }
+      });
+      seg.appendChild(gen);
+      head.appendChild(seg);
+      row.appendChild(head);
+
+      /* druhá řada: přístupy k projektům */
+      const acc = document.createElement('div');
+      acc.className = 'mt-3 flex flex-wrap items-center gap-x-5 gap-y-2';
+
+      if (u.role === 'admin') {
+        acc.innerHTML = '<span class="text-small text-gray-500">Přístup ke všem projektům.</span>';
+      } else {
+        for (const p of data.projects) {
+          const label = document.createElement('label');
+          label.className = 'flex cursor-pointer items-center gap-2 text-small';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'h-4 w-4 accent-accent';
+          cb.checked = u.projects.includes(p.slug);
+          cb.addEventListener('change', async () => {
+            const vybrane = Array.from(acc.querySelectorAll('input[type=checkbox]'))
+              .map((el, i) => ((el as HTMLInputElement).checked ? data.projects[i].slug : null))
+              .filter(Boolean);
+            try {
+              await api('/client/api/admin/access', { userId: u.id, projects: vybrane });
+              zprava(`Přístupy pro ${u.email} uloženy. Platí okamžitě.`);
+            } catch (e) {
+              cb.checked = !cb.checked;
+              zprava(popisChyby(e), true);
+            }
+          });
+          label.appendChild(cb);
+          label.appendChild(document.createTextNode(p.name));
+          acc.appendChild(label);
+        }
+      }
+      row.appendChild(acc);
+      seznam.appendChild(row);
+    }
+  }
+
+  async function nacti() {
+    try {
+      vykresli(await api('/client/api/admin/users'));
+    } catch (e) {
+      zprava(popisChyby(e), true);
+    }
+  }
+
+  document.getElementById('novy')!.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const form = ev.target as HTMLFormElement;
+    const fd = new FormData(form);
+    try {
+      const r = await api('/client/api/admin/users', {
+        email: fd.get('email'),
+        firstName: fd.get('firstName'),
+        lastName: fd.get('lastName')
+      });
+      hesla.set(r.id, r.password);
+      form.reset();
+      zprava(`Účet ${r.email} založen. Heslo je v jeho řádku – po zavření stránky ho už nepřečteš.`);
+      await nacti();
+    } catch (e) {
+      zprava(popisChyby(e), true);
+    }
+  });
+
+  nacti();
+</script>

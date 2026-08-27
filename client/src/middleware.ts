@@ -65,7 +65,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return noStore(context.redirect(`/client/login?next=${back}`, 302));
   }
 
-  /* Sekce jen pro admina. Skrytí v UI není bezpečnostní prvek - drží to tady. */
+  /* Sekce i API jen pro admina. Skrytí v UI není bezpečnostní prvek - drží
+     to tady, a API musí odmítnout stejně jako stránka. */
+  if (path.startsWith('/api/admin') && user.role !== 'admin') {
+    return noStore(
+      new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
   if (path.startsWith('/admin') && user.role !== 'admin') {
     return noStore(context.redirect('/client/dashboard', 302));
   }
