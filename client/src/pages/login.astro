@@ -1,0 +1,59 @@
+---
+/* Přihlášení. Registrace neexistuje, účty zakládá admin ve Správě. */
+import Layout from '../components/Layout.astro';
+import { getDb } from '../lib/env';
+
+const dbReady = !!getDb();
+const next = Astro.url.searchParams.get('next') || '/client/dashboard';
+const failed = Astro.url.searchParams.get('e') === '1';
+---
+
+<Layout title="Přihlášení – Webkit.Studio" bare={true}>
+  <div class="flex min-h-screen items-center justify-center p-5">
+    <div class="w-full max-w-[360px]">
+      <div class="mb-8 flex items-center gap-3">
+        <span class="text-[13px] font-bold tracking-[0.02em]">WEBKIT.STUDIO</span>
+      </div>
+
+      {!dbReady ? (
+        <p class="border border-gray-300 p-4 text-small">
+          Databáze zatím není připojená. Prostředí běží, ale přihlásit se nelze.
+        </p>
+      ) : (
+        <form method="post" action="/client/api/login" class="flex flex-col gap-2">
+          <input type="hidden" name="next" value={next} />
+
+          <input
+            class="h-12 w-full border border-gray-300 bg-white px-4 text-base text-black outline-none placeholder:text-gray-500"
+            type="email"
+            name="email"
+            autocomplete="username"
+            placeholder="E-mail"
+            required
+            aria-label="E-mail"
+          />
+          <input
+            class="h-12 w-full border border-gray-300 bg-white px-4 text-base text-black outline-none placeholder:text-gray-500"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            placeholder="Heslo"
+            required
+            aria-label="Heslo"
+          />
+
+          {failed && (
+            <p class="mt-1 text-small text-accent" role="alert">Nesprávný e-mail nebo heslo.</p>
+          )}
+
+          <button
+            type="submit"
+            class="mt-2 h-12 w-full bg-black text-base font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+          >
+            Přihlásit
+          </button>
+        </form>
+      )}
+    </div>
+  </div>
+</Layout>

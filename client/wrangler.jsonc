@@ -1,0 +1,21 @@
+{
+  // Webflow Cloud staví z tohoto souboru. Binding "DB" musí sedět s názvem,
+  // který je nastavený ve Webflow Cloud → Advanced settings → D1.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // main ani assets se neuvádí - doplní je adaptér @astrojs/cloudflare při buildu.
+  "name": "webkit-studio-client",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "webkit-client",
+      // Vyplní se ID skutečné databáze z Webflow Cloud. Lokálně se nepoužívá,
+      // wrangler --local si drží vlastní kopii v .wrangler/.
+      "database_id": "PLACEHOLDER-DOPLNIT-Z-WEBFLOW-CLOUD"
+    }
+  ]
+}
