@@ -76,7 +76,10 @@ export function renderViewer(o: ViewerOptions): string | null {
         Skript si cte nastaveni z atributu pres document.currentScript, takze
         NESMI byt type="module" - tam je currentScript null a skript by se
         rovnou ukoncil. Bubliny data-tip drzel driv gate.js, ktery uz
-        neexistuje; jsou vyriznute do tip.js. */
+        neexistuje; jsou vyriznute do tip.js.
+        Cesta musi mit vic nez jeden segment: /client/comments.js by pohltila
+        dynamicka routa projektu ([project]) a server by ji poslal na login.
+        Overeno na nasazene aplikaci - vracelo to 302 misto souboru. */
   const cfg =
     `<script>window.WKS = ${JSON.stringify({
       project: o.project,
@@ -88,8 +91,8 @@ export function renderViewer(o: ViewerOptions): string | null {
     })};</script>`;
   html = html.replace(
     /<script src="\/assets\/comments\.js"[^>]*><\/script>/,
-    `${cfg}<script src="/client/tip.js"></script>` +
-      `<script src="/client/comments.js" data-project="${o.project}" ` +
+    `${cfg}<script src="/client/assets/tip.js"></script>` +
+      `<script src="/client/assets/comments.js" data-project="${o.project}" ` +
       `data-version="${o.version}" data-view="${o.view}"></script>`
   );
 
