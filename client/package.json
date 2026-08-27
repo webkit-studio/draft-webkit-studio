@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "wrangler dev",
-    "db:local": "wrangler d1 execute webkit-client --local --file",
-    "test": "node --test tests/"
+    "serve": "wrangler dev -c dist/server/wrangler.json --port 8788 --local --persist-to .wrangler-local",
+    "db:migrate": "wrangler d1 execute DB -c dist/server/wrangler.json --local --persist-to .wrangler-local --file migrations/0001_init.sql",
+    "db:seed": "node scripts/seed.mjs > .seed.sql && wrangler d1 execute DB -c dist/server/wrangler.json --local --persist-to .wrangler-local --file .seed.sql",
+    "db:sql": "wrangler d1 execute DB -c dist/server/wrangler.json --local --persist-to .wrangler-local --command",
+    "test": "node tests/auth.test.cjs && node tests/admin.test.cjs && node tests/comments.test.cjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.2.5",

@@ -12,6 +12,38 @@ for (const line of fs.readFileSync(OUT + 'creds.txt', 'utf8').split('\n')) {
   if (m) creds[m[1]] = { role: m[2], password: m[3] };
 }
 
+
+/* Lokalni wrangler dev worker po nekolika pozadavcich recykluje a pozadavek,
+   ktery spadne do mezery, dostane 500. Overeno experimentem: 500 sedne vzdy
+   na stejnou POZICI v poradi, ne na konkretni endpoint - pri prohozeni poradi
+   se presune jinam. Proto se pri 500 pocka na navrat serveru a zkusi znovu.
+   Kdyby endpoint vracel 500 doopravdy, vrati ji i druhy pokus a test spadne. */
+async function zivy(page) {
+  for (let i = 0; i < 30; i++) {
+    const ok = await page.evaluate(async () => {
+      try { const r = await fetch('/client/login', { method: 'GET' }); return r.status === 200; }
+      catch { return false; }
+    }).catch(() => false);
+    if (ok) return true;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return false;
+}
+
+async function znovuPri500(page, fn) {
+  let out;
+  try {
+    out = await fn();
+  } catch {
+    out = 500; /* server umrel uprostred - fetch vyhodi misto stavu */
+  }
+  if (out === 500 || (out && out.status === 500)) {
+    await zivy(page);
+    out = await fn();
+  }
+  return out;
+}
+
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => {
   console.log(`${ok ? 'OK  ' : 'CHYBA'} ${name}${detail ? '  ' + detail : ''}`);
@@ -39,40 +71,43 @@ async function login(ctx, email) {
   if (faze === 'vse' || faze === 'klient') {
     const ctx = await browser.newContext();
     const page = await login(ctx, 'test@webkit.studio');
-    const r = await page.evaluate(async () => {
+    const r = await znovuPri500(page, () => page.evaluate(async () => {
       const res = await fetch('/client/api/admin/users');
       return res.status;
-    });
+    }));
     check('klient: GET /api/admin/users -> 403', r === 403, `stav ${r}`);
+    await page.waitForTimeout(600);
 
-    const w = await page.evaluate(async () => {
+    const w = await znovuPri500(page, () => page.evaluate(async () => {
       const res = await fetch('/client/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'utok@example.com' })
       });
       return res.status;
-    });
+    }));
     check('klient: POST /api/admin/users -> 403', w === 403, `stav ${w}`);
+    await page.waitForTimeout(600);
 
-    const p = await page.evaluate(async () => {
+    const p = await znovuPri500(page, () => page.evaluate(async () => {
       const res = await fetch('/client/api/admin/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: 'cokoli' })
       });
       return res.status;
-    });
+    }));
     check('klient: POST /api/admin/password -> 403', p === 403, `stav ${p}`);
+    await page.waitForTimeout(600);
 
-    const a = await page.evaluate(async () => {
+    const a = await znovuPri500(page, () => page.evaluate(async () => {
       const res = await fetch('/client/api/admin/access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: 'cokoli', projects: ['anse'] })
       });
       return res.status;
-    });
+    }));
     check('klient: POST /api/admin/access -> 403', a === 403, `stav ${a}`);
     await ctx.close();
   }
