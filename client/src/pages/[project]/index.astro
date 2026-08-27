@@ -17,10 +17,14 @@ try {
   requireProject(Astro.locals.user, project);
 } catch (e) {
   const status = e instanceof AccessError ? e.status : 500;
-  return new Response('Nemáte přístup k tomuto projektu.', {
-    status,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }
-  });
+  /* Hlaska rika, o ktery projekt slo a kdo je prihlaseny - jinak vypada
+     stejne jako preklep v adrese a hleda se to naslepo. */
+  const kdo = Astro.locals.user ? Astro.locals.user.email : 'nepřihlášený';
+  return new Response(
+    `Nemáte přístup k projektu „${project}“.\n\nPřihlášen: ${kdo}\n` +
+      `Pokud jsi mířil na založení databáze, je to /client/setup.`,
+    { status, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } }
+  );
 }
 
 const row = db

@@ -81,14 +81,30 @@ function sameString(a: string, b: string): boolean {
   return diff === 0;
 }
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, request }) => {
   const env = getEnv();
   if (!env.DB) return json({ error: 'Databáze není připojená.' }, 503);
 
   const secret = env.SESSION_SECRET || '';
-  const token = url.searchParams.get('token') || '';
   if (!secret) return json({ error: 'SESSION_SECRET není nastavený.' }, 503);
-  if (!sameString(token, secret)) return json({ error: 'Neplatný token.' }, 403);
+
+  /* Base64 secret obsahuje "+", a v dotazu adresy se "+" cte jako mezera.
+     Bez tohohle by token s plusem nikdy nesedel - a chyba by vypadala jako
+     spatne opsany secret. Zkousi se obe podoby. */
+  const raw = request.headers.get('x-setup-token') || url.searchParams.get('token') || '';
+  const varianty = [raw, raw.replace(/ /g, '+')];
+  const sedi = varianty.some((t) => sameString(t, secret));
+  if (!sedi) {
+    return json(
+      {
+        error: 'Neplatný token.',
+        napoveda:
+          'Token musí přesně odpovídat proměnné SESSION_SECRET. Pozor na "+" v Base64 – ' +
+          'pokud se adresa chová divně, vlož token do hlavičky X-Setup-Token místo do adresy.'
+      },
+      403
+    );
+  }
 
   /* Pojistka: cokoli už v databázi je, znamená konec. */
   const existing = await env.DB

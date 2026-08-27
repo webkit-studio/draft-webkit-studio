@@ -15,7 +15,7 @@ import { getDb } from './lib/env';
 /* /api/setup musi byt verejny: bezi drive, nez existuje prvni ucet, takze
    se k nemu nikdo prihlasit nemuze. Chrani ho token a podminka prazdne
    databaze primo v endpointu. */
-const PUBLIC_PATHS = new Set(['/login', '/api/login', '/api/setup']);
+const PUBLIC_PATHS = new Set(['/login', '/api/login', '/setup', '/api/setup']);
 
 function noStore(res: Response): Response {
   res.headers.set('Cache-Control', 'no-store');
