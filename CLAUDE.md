@@ -168,6 +168,32 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   zůstávají. Změna přístupů se projeví po příštím přihlášení / obnovení
   session uživatele (nový JWT s aktuálním `app_metadata`).
 
+## Aplikace client/ (Astro na Webflow Cloud)
+
+Prostředí se přestavuje do `client/` – Astro + Cloudflare Workers + D1,
+nasazované přes Webflow Cloud na `webkit.studio/client`. Nahrazuje Supabase
+(gate.js, admin.js, RLS) serverovou vrstvou: o přístupu rozhoduje
+`client/src/middleware.ts` a `client/src/lib/access.ts`. Podrobnosti jsou
+v `client/README.md` – techstack, adresy, proměnné prostředí, vývoj.
+
+Zbytek tohohle souboru popisuje původní statický web na `draft.webkit.studio`.
+Ten zatím běží dál; přepnutí a vypnutí Supabase je samostatný krok.
+
+### Čtení komentářů bez přihlášení
+
+Agent, který pracuje na plátně návrhu, se k databázi jinak nedostane.
+Read-only export tokenem:
+
+```sh
+curl -sH "X-Export-Token: $EXPORT_TOKEN" \
+  "https://webkit.studio/client/api/export/comments?project=<slug>&format=md"
+```
+
+`format=json` vrátí strojově čitelnou podobu, `version=v2` omezí na jednu
+verzi. Token je v proměnné `EXPORT_TOKEN` ve Webflow Cloud, **do repa
+nikdy**. Bez ní je endpoint vypnutý (503), se špatným tokenem vrací 404.
+Endpoint je výhradně pro čtení a sahá jen do tabulky `comments`.
+
 ## Postupy
 
 ### Nový item (nová položka projektu)

@@ -11,7 +11,7 @@
     "db:migrate": "wrangler d1 execute DB -c dist/server/wrangler.json --local --persist-to .wrangler-local --file migrations/0001_init.sql",
     "db:seed": "node scripts/seed.mjs > .seed.sql && wrangler d1 execute DB -c dist/server/wrangler.json --local --persist-to .wrangler-local --file .seed.sql",
     "db:sql": "wrangler d1 execute DB -c dist/server/wrangler.json --local --persist-to .wrangler-local --command",
-    "test": "node tests/auth.test.cjs && node tests/admin.test.cjs && node tests/comments.test.cjs"
+    "test": "node scripts/test.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.2.5",
