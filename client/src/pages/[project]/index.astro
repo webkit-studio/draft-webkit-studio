@@ -1,0 +1,109 @@
+---
+/* Stránka klienta: seznam verzí návrhu.
+ *
+ * Přístup hlídá requireProject - když sem klient přijde na cizí slug,
+ * dostane 403, ne prázdnou stránku. */
+import Layout from '../../components/Layout.astro';
+import { requireProject, AccessError } from '../../lib/access';
+import { getDb } from '../../lib/env';
+import { versionsFor } from '../../lib/versions';
+
+export const prerender = false;
+
+const project = Astro.params.project!;
+const db = getDb();
+
+try {
+  requireProject(Astro.locals.user, project);
+} catch (e) {
+  const status = e instanceof AccessError ? e.status : 500;
+  return new Response('Nemáte přístup k tomuto projektu.', {
+    status,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }
+  });
+}
+
+const row = db
+  ? await db.prepare(`SELECT slug, name FROM projects WHERE slug = ?1`).bind(project).first<{ slug: string; name: string }>()
+  : null;
+
+if (!row) {
+  return new Response('Projekt neexistuje.', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }
+  });
+}
+
+const versions = versionsFor(project);
+
+/* Štítek u verze: nejdřív počet otevřených akcentní barvou, pak celkový.
+   Bez otevřených jen celkový počet - stejné pravidlo jako dosud. */
+type Counts = { open: number; total: number };
+const counts: Record<string, Counts> = {};
+if (db) {
+  const res = await db
+    .prepare(
+      `SELECT version,
+              COUNT(*) AS total,
+              SUM(CASE WHEN resolved = 0 AND parent_id IS NULL THEN 1 ELSE 0 END) AS open
+         FROM comments WHERE project = ?1 GROUP BY version`
+    )
+    .bind(project)
+    .all<{ version: string; total: number; open: number }>();
+  for (const r of res.results) counts[r.version] = { open: Number(r.open || 0), total: Number(r.total || 0) };
+}
+---
+
+<Layout title={`${row.name} – Webkit.Studio`} clientName={row.name}>
+  <div class="mx-auto max-w-container px-5 py-8">
+    <h1 class="mb-6 text-h3 font-semibold">{row.name}</h1>
+
+    {versions.length === 0 ? (
+      <p class="text-gray-500">Zatím tu není žádná verze.</p>
+    ) : (
+      <div class="border-t border-gray-300">
+        {versions.map((v) => {
+          const c = counts[v.id];
+          return (
+            <div class="flex flex-wrap items-center gap-4 border-b border-gray-300 py-5">
+              <div class="flex-1 min-w-[200px]">
+                <span class="text-h5 font-semibold">{v.name}</span>
+                <span class="ml-3 text-small text-gray-500">{v.date}</span>
+                {c && c.total > 0 && (
+                  <span class="ml-3 text-small">
+                    {c.open > 0 && <span class="font-semibold text-accent">{c.open}</span>}
+                    {c.open > 0 && <span class="text-gray-500"> · </span>}
+                    <span class="text-gray-500">{c.total}</span>
+                  </span>
+                )}
+              </div>
+
+              <span class="border border-gray-300 px-2 py-1 text-tiny font-semibold uppercase tracking-[0.08em]">
+                {v.tag}
+              </span>
+
+              <div class="flex gap-2">
+                {v.views.includes('desktop') && (
+                  <a
+                    class="flex h-8 items-center bg-black px-4 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+                    href={`/client/${project}/${v.id}/desktop`}
+                  >
+                    Počítač
+                  </a>
+                )}
+                {v.views.includes('mobile') && (
+                  <a
+                    class="flex h-8 items-center border border-gray-300 px-4 text-small font-semibold transition-colors duration-fast ease-out hover:border-accent hover:text-accent"
+                    href={`/client/${project}/${v.id}/mobile`}
+                  >
+                    Mobil
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</Layout>
