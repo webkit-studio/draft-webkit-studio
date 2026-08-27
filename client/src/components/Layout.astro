@@ -1,0 +1,71 @@
+---
+/* Základní rám aplikace. Co-brand drží pravidlo design systému:
+   "WEBKIT.STUDIO x NÁZEV", kde x je akcentní a pro čtečky skryté,
+   název klienta uppercase přes CSS. */
+import '../styles/app.css';
+import { displayName } from '../lib/db';
+
+interface Props {
+  title: string;
+  clientName?: string | null;
+  /* lišta se skryje na přihlašovací stránce */
+  bare?: boolean;
+}
+
+const { title, clientName = null, bare = false } = Astro.props;
+const user = Astro.locals.user;
+---
+
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-white text-black">
+    {!bare && (
+      <header class="flex h-[52px] items-center justify-between border-b border-gray-300 px-5">
+        <a href="/client/dashboard" class="flex items-center gap-3">
+          <span class="text-[13px] font-bold tracking-[0.02em]">WEBKIT.STUDIO</span>
+          {clientName && (
+            <>
+              <span class="text-[13px] font-bold text-accent" aria-hidden="true">x</span>
+              <span class="text-[13px] font-bold uppercase tracking-[0.02em]">{clientName}</span>
+            </>
+          )}
+        </a>
+
+        {user && (
+          <div class="flex items-center gap-4 text-small">
+            {user.role === 'admin' && (
+              <a href="/client/admin" class="text-gray-500 transition-colors duration-fast ease-out hover:text-accent">
+                Správa
+              </a>
+            )}
+            <span class="font-medium">{displayName(user)}</span>
+            <form method="post" action="/client/api/logout">
+              <button
+                type="submit"
+                class="text-gray-500 transition-colors duration-fast ease-out hover:text-accent"
+              >
+                Odhlásit
+              </button>
+            </form>
+          </div>
+        )}
+      </header>
+    )}
+
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

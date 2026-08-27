@@ -1,0 +1,5 @@
+---
+/* Sem se nikdy nedojde - middleware /client přesměruje dřív. Stránka
+   existuje jen proto, aby cesta nevracela 404, kdyby middleware selhal. */
+return Astro.redirect('/client/login', 302);
+---

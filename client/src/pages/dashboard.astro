@@ -1,0 +1,42 @@
+---
+import Layout from '../components/Layout.astro';
+import { getDb } from '../lib/env';
+
+const db = getDb();
+const user = Astro.locals.user!;
+
+let projects: { slug: string; name: string; subtitle: string | null }[] = [];
+if (db && user.projects.length) {
+  const marks = user.projects.map((_, i) => `?${i + 1}`).join(',');
+  const res = await db
+    .prepare(`SELECT slug, name, subtitle FROM projects WHERE slug IN (${marks}) ORDER BY sort, name`)
+    .bind(...user.projects)
+    .all<{ slug: string; name: string; subtitle: string | null }>();
+  projects = res.results;
+}
+---
+
+<Layout title="Přehled – Webkit.Studio">
+  <div class="mx-auto max-w-container px-5 py-8">
+    {projects.length === 0 ? (
+      <p class="text-gray-500">Zatím tu nic není.</p>
+    ) : (
+      <ul class="border-t border-gray-300">
+        {projects.map((p) => (
+          <li class="border-b border-gray-300">
+            <a
+              href={`/client/${p.slug}`}
+              class="group flex items-center justify-between py-5 transition-colors duration-fast ease-out"
+            >
+              <span>
+                <span class="text-h4 font-semibold group-hover:text-accent">{p.name}</span>
+                {p.subtitle && <span class="ml-3 text-small text-gray-500">{p.subtitle}</span>}
+              </span>
+              <span class="text-gray-500 transition-transform duration-fast ease-out group-hover:translate-x-1 group-hover:text-accent" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Layout>
