@@ -82,31 +82,81 @@ const secretReady = !!env.SESSION_SECRET;
 
 <script>
   const f = document.getElementById('f');
+
+  /* Kroky se poustej jeden po druhem. Kazdy je samostatny pozadavek, takze
+     kdyz nektery selze, vidime PRESNE ktery a proc - misto jedine hlasky
+     "nepodarilo se spojit se serverem". */
+  const KROKY = [
+    ['schema', 'Zakládám tabulky'],
+    ['projekty', 'Vkládám projekty'],
+    ['admin', 'Zakládám účet lukas@webkit.studio'],
+    ['klient', 'Zakládám účet test@webkit.studio']
+  ];
+
   if (f) {
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const out = document.getElementById('out')!;
-      const token = (document.getElementById('token') as HTMLInputElement).value;
+      const out = document.getElementById('out');
+      const btn = f.querySelector('button');
+      const token = (document.getElementById('token')).value;
+      const radky = [];
+      const hesla = [];
+
       out.classList.remove('hidden');
-      out.textContent = 'Zakládám…';
-      try {
-        /* Token jde hlavičkou - v adrese by se "+" z Base64 zmenilo na mezeru. */
-        const res = await fetch('/client/api/setup', { headers: { 'X-Setup-Token': token } });
-        const data = await res.json();
-        if (!res.ok) {
-          out.textContent = (data.error || `Chyba ${res.status}`) + (data.napoveda ? '\n\n' + data.napoveda : '');
+      out.style.borderColor = '#e2e2e2';
+      btn.disabled = true;
+      const vypis = () => { out.textContent = radky.join('\n'); };
+
+      for (const [krok, popis] of KROKY) {
+        radky.push(`${popis}…`);
+        vypis();
+        let d = null;
+        try {
+          const res = await fetch(`/client/api/setup?krok=${krok}`, {
+            headers: { 'X-Setup-Token': token }
+          });
+          d = await res.json().catch(() => null);
+          if (!res.ok) {
+            radky[radky.length - 1] =
+              `${popis}: CHYBA (${res.status}) ${d ? d.error || '' : ''} ${d && d.detail ? '– ' + d.detail : ''}`;
+            out.style.borderColor = '#ff4d00';
+            vypis();
+            btn.disabled = false;
+            return;
+          }
+        } catch (err) {
+          /* Spojeni umrelo uprostred kroku - rekneme aspon u ktereho. */
+          radky[radky.length - 1] = `${popis}: spojení se serverem se přerušilo.`;
+          radky.push('Zkus to znovu – kroky jdou opakovat, nic se nerozbije.');
           out.style.borderColor = '#ff4d00';
+          vypis();
+          btn.disabled = false;
           return;
         }
-        out.style.borderColor = '#e2e2e2';
-        out.textContent =
-          'Hotovo. Ulož si hesla, už se znovu neukážou.\n\n' +
-          data.ucty.map((u: any) => `${u.email}\n${u.role}\n${u.password}\n`).join('\n') +
-          `\nProjektů: ${data.projektu}`;
-      } catch (err) {
-        out.style.borderColor = '#ff4d00';
-        out.textContent = 'Nepodařilo se spojit se serverem.';
+
+        const detaily = [];
+        if (d.preskoceno) detaily.push('už existovalo');
+        if (d.projektu !== undefined) detaily.push(`${d.projektu} projektů`);
+        if (d.vytvoreno) detaily.push(`${d.vytvoreno.length} tabulek`);
+        if (d.trvalo_ms !== undefined) detaily.push(`${d.trvalo_ms} ms`);
+        radky[radky.length - 1] = `${popis}: hotovo${detaily.length ? ' (' + detaily.join(', ') + ')' : ''}`;
+        if (d.heslo) hesla.push(`${d.email}\n${d.role}\n${d.heslo}`);
+        vypis();
       }
+
+      radky.push('');
+      if (hesla.length) {
+        radky.push('HESLA – ulož si je, už se neukážou:');
+        radky.push('');
+        radky.push(hesla.join('\n\n'));
+      } else {
+        radky.push('Účty už existovaly, hesla se proto neukazují.');
+        radky.push('Nové heslo si vygeneruješ ve Správě po přihlášení.');
+      }
+      radky.push('');
+      radky.push('Hotovo. Přihlas se na /client/login');
+      vypis();
+      btn.disabled = false;
     });
   }
 </script>

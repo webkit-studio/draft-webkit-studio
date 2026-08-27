@@ -24,12 +24,13 @@ const check = (n, ok, d = '') => { console.log(`${ok ? 'OK  ' : 'CHYBA'} ${n}${d
   /* spravny token */
   await p.fill('#token', SECRET);
   await p.click('#f button[type=submit]');
-  await p.waitForTimeout(4000);
+  await p.waitForTimeout(9000);
   out = await p.locator('#out').textContent();
-  check('databáze založena', (out || '').includes('Hotovo'), (out || '').slice(0, 40));
+  check('databáze založena', (out || '').includes('Hotovo. Přihlas se'), (out || '').slice(-60));
   check('vypsala hesla obou účtů',
     (out || '').includes('lukas@webkit.studio') && (out || '').includes('test@webkit.studio'));
-  check('vypsala počet projektů', (out || '').includes('Projektů: 7'));
+  check('vložilo 7 projektů', (out || '').includes('7 projektů'));
+  check('všechny kroky hotové', ((out || '').match(/hotovo/g) || []).length === 4, `hotovo x${((out || '').match(/hotovo/g) || []).length}`);
 
   const m = (out || '').match(/lukas@webkit\.studio\s+admin\s+(\S+)/);
   const heslo = m ? m[1] : null;
