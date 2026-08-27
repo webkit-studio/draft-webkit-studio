@@ -3,3 +3,5 @@ dist/
 .astro/
 .wrangler/
 .dev.vars
+.wrangler-local/
+.seed.sql
