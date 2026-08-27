@@ -19,7 +19,7 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 
 /* Slugy, které patří systémovým stránkám - projekt se tak jmenovat nesmí,
    jinak by přebil /client/dashboard nebo /client/login. */
-export const RESERVED_SLUGS = new Set(['login', 'dashboard', 'admin', 'api', 'settings', 'logout']);
+export const RESERVED_SLUGS = new Set(['login', 'dashboard', 'admin', 'api', 'settings', 'logout', 'setup']);
 
 export const GET: APIRoute = async () => {
   const db = getDb();

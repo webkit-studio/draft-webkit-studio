@@ -1,0 +1,112 @@
+---
+/* Jednorázové založení databáze - formulářem, ne adresou.
+ *
+ * Token v adrese je past: Base64 secret obsahuje "+", které se v dotazu
+ * adresy čte jako mezera, a "/" nebo "=" svádí k překlepu. Pole ve
+ * formuláři posílá hodnotu tak, jak je. */
+import Layout from '../components/Layout.astro';
+import { getEnv, getDb } from '../lib/env';
+
+export const prerender = false;
+
+const env = getEnv();
+const db = getDb();
+
+/* Je už hotovo? Pak se sem nemá co ukazovat. */
+let hotovo = false;
+if (db) {
+  try {
+    const t = await db.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='users'`).first();
+    if (t) hotovo = !!(await db.prepare(`SELECT 1 AS x FROM users LIMIT 1`).first());
+  } catch {
+    hotovo = false;
+  }
+}
+
+const dbReady = !!db;
+const secretReady = !!env.SESSION_SECRET;
+---
+
+<Layout title="Založení databáze – Webkit.Studio" bare={true}>
+  <div class="flex min-h-screen items-center justify-center p-5">
+    <div class="w-full max-w-[460px]">
+      <div class="mb-8 text-[13px] font-bold tracking-[0.02em]">WEBKIT.STUDIO</div>
+      <h1 class="mb-5 text-h4 font-semibold">Založení databáze</h1>
+
+      {!dbReady && (
+        <p class="border border-gray-300 p-4 text-small">Databáze není připojená.</p>
+      )}
+
+      {dbReady && !secretReady && (
+        <p class="border border-gray-300 p-4 text-small">
+          Není nastavená proměnná SESSION_SECRET.
+        </p>
+      )}
+
+      {dbReady && secretReady && hotovo && (
+        <p class="border border-gray-300 p-4 text-small">
+          Databáze už je založená. Tahle stránka je tím uzavřená.
+          <a class="ml-2 font-semibold underline" href="/client/login">Přihlásit se</a>
+        </p>
+      )}
+
+      {dbReady && secretReady && !hotovo && (
+        <>
+          <p class="mb-4 text-small text-gray-500">
+            Vlož SESSION_SECRET z Environment variables. Proběhne to jednou – vytvoří se
+            schéma, projekty a dva účty. Hesla se ukážou jen teď.
+          </p>
+          <form id="f" class="flex flex-col gap-2">
+            <input
+              id="token"
+              class="h-12 w-full border border-gray-300 bg-white px-4 text-base outline-none placeholder:text-gray-500"
+              type="password"
+              placeholder="SESSION_SECRET"
+              autocomplete="off"
+              required
+              aria-label="SESSION_SECRET"
+            />
+            <button
+              type="submit"
+              class="mt-2 h-12 w-full bg-black text-base font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+            >
+              Založit
+            </button>
+          </form>
+          <pre id="out" class="mt-5 hidden overflow-x-auto border border-gray-300 p-4 text-small"></pre>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const f = document.getElementById('f');
+  if (f) {
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const out = document.getElementById('out')!;
+      const token = (document.getElementById('token') as HTMLInputElement).value;
+      out.classList.remove('hidden');
+      out.textContent = 'Zakládám…';
+      try {
+        /* Token jde hlavičkou - v adrese by se "+" z Base64 zmenilo na mezeru. */
+        const res = await fetch('/client/api/setup', { headers: { 'X-Setup-Token': token } });
+        const data = await res.json();
+        if (!res.ok) {
+          out.textContent = (data.error || `Chyba ${res.status}`) + (data.napoveda ? '\n\n' + data.napoveda : '');
+          out.style.borderColor = '#ff4d00';
+          return;
+        }
+        out.style.borderColor = '#e2e2e2';
+        out.textContent =
+          'Hotovo. Ulož si hesla, už se znovu neukážou.\n\n' +
+          data.ucty.map((u: any) => `${u.email}\n${u.role}\n${u.password}\n`).join('\n') +
+          `\nProjektů: ${data.projektu}`;
+      } catch (err) {
+        out.style.borderColor = '#ff4d00';
+        out.textContent = 'Nepodařilo se spojit se serverem.';
+      }
+    });
+  }
+</script>
