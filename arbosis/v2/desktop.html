@@ -229,7 +229,7 @@
         </section>
 
         <div data-spanel="" style="position:fixed;left:0;top:0;z-index:55;width:clamp(340px,32cqw,480px);aspect-ratio:3/2;pointer-events:none;opacity:0;transform:scale(0.94);transition:opacity 220ms cubic-bezier(0.2,0,0,1),transform 220ms cubic-bezier(0.2,0,0,1);overflow:hidden;box-shadow:0 24px 80px rgba(27,58,45,0.4)">
-          <img data-spimg="" src="assets/hero.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:10% 25%;display:block">
+          <img data-spimg="" src="assets/realizace/navrhy.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:10% 25%;display:block">
         </div>
 
         <section data-screen-label="D2 Loga" style="padding:clamp(56px,6cqw,88px) 0 clamp(48px,5cqw,72px)">
@@ -471,7 +471,7 @@ if(slist&&panel){
   row.addEventListener('mouseenter',function(){if(ph.length)put(ph[0]);if(anim){panel.style.opacity='1';panel.style.transform='scale(1)'}row.style.paddingLeft='28px';if(num)num.style.color='#E8673C'});
   row.addEventListener('mousemove',function(e){if(ph.length===1)return;/* jedna fotka na radek: nic nepresvetlujeme */
    var r=row.getBoundingClientRect();var rel=Math.max(0,Math.min(0.9999,(e.clientX-r.left)/r.width))*FT;var idx=0;while(idx<FC.length-1&&rel>FC[idx])idx++;
-   if(ph.length>1)put(ph[idx%ph.length]);else pimg.style.objectPosition=FR[idx]});
+   if(ph.length>1)put(ph[idx%ph.length]);else{put('assets/hero.webp');pimg.style.objectPosition=FR[idx]}});
   row.addEventListener('mouseleave',function(){row.style.paddingLeft='8px';if(num)num.style.color='#7BAF7E'});
  });
 }
