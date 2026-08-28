@@ -107,7 +107,11 @@ async function login(ctx, email) {
     await page.fill('input[name=password]', creds[email].password);
     await page.click('button[type=submit]').catch(() => {});
     await page.waitForTimeout(1800);
-    if (!page.url().includes('/client/login')) return page;
+    /* Musime videt dashboard, ne jen "uz nejsme na /client/login": kdyz server
+       umre behem POSTu, prohlizec skonci na chybove strance u /client/api/login
+       a ta podminku "neni login" splni - prihlaseni pritom neprobehlo a vsechny
+       dalsi kontroly pak hlasi 401, jako by selhalo opravneni. */
+    if (page.url().includes('/client/dashboard')) return page;
     console.log(`… přihlášení ${email} neprošlo, zkouším znovu (${pokus}/3)`);
   }
   throw new Error(`Nepodařilo se přihlásit ${email}`);

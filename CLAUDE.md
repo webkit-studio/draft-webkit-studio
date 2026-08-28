@@ -7,6 +7,13 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 
 ## Struktura
 
+- `/index.html`, `/<slug>/index.html`, `/<slug>/v<N>/{desktop,mobile}.html`
+  a `/404.html` – od vypnutí Supabase jen přesměrování na odpovídající
+  adresu pod `webkit.studio/client`. Popis níž platí pro stav před
+  přepnutím. Archiv (`wireframe.html`, `export-*.html`) zůstal netknutý.
+
+Jak to vypadalo do přepnutí:
+
 - `/index.html` – rozcestník za přihlášením (gate.js bez `data-client`,
   pustí každého přihlášeného). Seznam projektů se generuje z tabulky
   `projects` (RLS vrací jen povolené): název + případný podtitulek + šipka.
@@ -181,9 +188,12 @@ nasazované přes Webflow Cloud na `webkit.studio/client`. Nahrazuje Supabase
 v `client/README.md` – techstack, adresy, proměnné prostředí, vývoj.
 
 Supabase je vypnutá, takže původní statický web na `draft.webkit.studio` už
-nefunguje. Kapitoly o bráně, komentářích a Správě nad Supabase zůstávají výš
-jako záznam, ne jako popis provozu. Co ještě zbývá: přesměrovat
-`draft.webkit.studio` na nové prostředí a přenést účty klientů.
+nefunguje. Jeho stránky teď jen přesměrovávají na odpovídající adresu pod
+`webkit.studio/client` (`/arbosis/v1/desktop.html` → `/client/arbosis/v1/desktop`),
+takže odkazy z dřívějších e-mailů drží. Kapitoly o bráně, komentářích a Správě
+nad Supabase zůstávají výš jako záznam, ne jako popis provozu.
+
+Co ještě zbývá: přenést účty klientů do nové databáze.
 
 ### Čtení komentářů bez přihlášení
 

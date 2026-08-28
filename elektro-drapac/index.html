@@ -1,88 +1,42 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Elektro Drapač – návrhy | Webkit.Studio</title>
-<script src="/assets/config.js"></script>
-<script src="/assets/gate.js" data-client="elektro-drapac" data-client-name="Elektro Drapač"></script>
-<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
-<link rel="apple-touch-icon" href="/assets/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Přesměrování – Webkit.Studio</title>
+<link rel="canonical" href="https://webkit.studio/client/elektro-drapac">
+<meta http-equiv="refresh" content="0; url=https://webkit.studio/client/elektro-drapac">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/assets/favicon.png">
 <style>
-  /* Tokeny design systému Webkit.Studio (/design/webkit/tokens) */
-  :root{
-    --black:#000000; --white:#ffffff;
-    --gray-100:#f4f4f4; --gray-300:#e2e2e2; --gray-500:#6f6f6f;
-    --accent:#ff4d00; --accent-ink:#000000; --focus-ring:var(--accent);
-    --font-sans:'Urbanist','Helvetica Neue',Arial,sans-serif;
-    --ease-out:cubic-bezier(0.2,0,0,1); --dur-fast:120ms; --dur-base:200ms;
+  /* Stránka, kterou nikdo nemá vidět déle než okamžik. Písmo se proto
+     nestahuje z Google Fonts - čekat na font kvůli přesměrování nedává smysl. */
+  * { border-radius: 0; box-shadow: none; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: #fff; color: #000;
+    font-family: Urbanist, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.55;
   }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:var(--font-sans);background:var(--white);color:var(--black);min-height:100vh;display:flex;flex-direction:column;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
-  ::selection{background:var(--accent);color:var(--accent-ink)}
-  .wrap{width:100%;max-width:720px;margin:0 auto;padding:0 24px}
-  main{flex:1;display:flex;align-items:center}
-  .list{width:100%;padding:64px 0}
-  a.brand{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:32px;text-decoration:none;color:var(--black)}
-  .brand svg{display:block;height:24px;width:auto;fill:var(--black)}
-  .brand b{font-size:13px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
-  .brand .co{display:inline-flex;align-items:center;gap:12px;white-space:nowrap}
-  .brand .x{font-size:13px;font-weight:700;color:var(--accent)}
-  .brand .cname{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
-  .brand.stacked{row-gap:16px}
-  .brand.stacked svg{flex-basis:100%;height:40px}
-  a.brand:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
-  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px 24px;flex-wrap:wrap;margin-bottom:32px}
-  .top .brand{margin-bottom:0}
-  .who{display:inline-flex;align-items:baseline;gap:14px;font-size:13px;white-space:nowrap}
-  .who[hidden]{display:none}
-  .who b{font-weight:600}
-  .who a{color:var(--gray-500);text-decoration:none;font-weight:600;transition:color var(--dur-fast) var(--ease-out)}
-  .who a:hover{color:var(--accent)}
-  .who a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
-  h1{font-size:clamp(28px,6vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.12;margin-bottom:40px}
-  .empty{border-top:1px solid var(--gray-300);border-bottom:1px solid var(--gray-300);padding:26px 0;font-size:15px;color:var(--gray-500)}
-  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+  main { max-width: 460px; }
+  .brand { margin: 0 0 32px; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+  h1 { margin: 0 0 12px; font-size: 22px; line-height: 1.25; font-weight: 600; }
+  p.text { margin: 0; font-size: 14px; color: #6f6f6f; }
+  a { color: #000; font-weight: 600; text-decoration: none; border-bottom: 1px solid #e2e2e2; }
+  a:hover { color: #ff4d00; border-bottom-color: #ff4d00; }
+  a:focus-visible { outline: 2px solid #ff4d00; outline-offset: 2px; }
 </style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="list">
-      <div class="top">
-      <a class="brand" href="/" aria-label="Webkit.Studio – přehled projektů">
-        <svg viewBox="0 0 432 108" preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false"><path d="M0 0H108V108H0Z"></path><path d="M108 0C108 59.65 156.35 108 216 108L216 0Z"></path><path d="M216 0C216 59.65 264.35 108 324 108L324 0Z"></path><path d="M324 0C324 59.65 372.35 108 432 108L432 0Z"></path></svg>
-        <b>WEBKIT.STUDIO</b>
-        <span class="co"><span class="x" aria-hidden="true">x</span><span class="cname">Elektro Drapač</span></span>
-      </a>
-      <div class="who" data-auth hidden><b data-auth-name></b><a href="#" data-auth-signout>Odhlásit</a></div>
-      </div>
-      <h1>Elektro Drapač</h1>
-
-      <p class="empty">Zatím žádný návrh.</p>
-    </div>
-  </main>
-  <script>
-    (function () {
-      var brand = document.querySelector('a.brand');
-      function fit() {
-        brand.classList.remove('stacked');
-        var need = 0;
-        for (var i = 0; i < brand.children.length; i++) {
-          need += brand.children[i].getBoundingClientRect().width;
-        }
-        need += 12 * (brand.children.length - 1);
-        if (need > brand.parentNode.clientWidth + 1) brand.classList.add('stacked');
-      }
-      window.addEventListener('resize', fit);
-      window.addEventListener('load', fit);
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
-      fit();
-    })();
-  </script>
+<main>
+  <p class="brand">WEBKIT.STUDIO</p>
+  <h1>Prostředí se přestěhovalo</h1>
+  <p class="text">Pokračuj na <a href="https://webkit.studio/client/elektro-drapac">webkit.studio/client/elektro-drapac</a>.</p>
+</main>
+<script>
+  /* replace, ne href: jinak by tlačítko Zpět člověka vracelo sem a znovu
+     přesměrovávalo dokola. */
+  location.replace("https://webkit.studio/client/elektro-drapac");
+</script>
 </body>
 </html>
