@@ -126,24 +126,57 @@ const radekS = (page, text) => page.locator('#seznam > li').filter({ hasText: te
     check('krátké heslo neprojde ani formulářem',
       await page.locator('#f-heslo input[name=next]').evaluate((el) => !el.checkValidity()));
 
-    /* změna hesla a zpátky - ať ostatní testy dál fungují */
-    const docasne = 'docasneHeslo123456';
-    await page.fill('#f-heslo input[name=current]', creds['test@webkit.studio']);
-    await page.fill('#f-heslo input[name=next]', docasne);
+    await page.screenshot({ path: OUT + 'set-ucet.png', fullPage: true });
+    await ctx.close();
+  }
+
+  /* ---------- skutecna zmena hesla, na jednorazovem uctu ----------
+     Zamerne NE na test@webkit.studio: menit heslo sdilenemu uctu a spolehat
+     na to, ze se stihne vratit zpatky, znamena, ze prvni pad sady uprostred
+     rozbije prihlaseni vsem sadam po ni. To uz se stalo a stalo to hledani. */
+  {
+    const { ctx: ctxA, page: admin } = await login(browser, 'lukas@webkit.studio');
+    const email = `heslo-${Date.now()}@webkit.studio`;
+    const zal = await admin.evaluate(async (mail) => {
+      const r = await fetch('/client/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: mail, firstName: 'Heslo', lastName: 'Zkouška' })
+      });
+      return r.json();
+    }, email);
+    await ctxA.close();
+    check('jednorázový účet pro test hesla založen', !!zal.password, zal.password ? 'ok' : JSON.stringify(zal));
+
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(BASE + '/client/login', { waitUntil: 'domcontentloaded' });
+    await page.fill('input[name=email]', email);
+    await page.fill('input[name=password]', zal.password);
+    await page.click('button[type=submit]');
+    await page.waitForTimeout(1800);
+
+    const nove = 'noveHesloZeZkousky1';
+    await page.goto(BASE + '/client/settings/account', { waitUntil: 'domcontentloaded' });
+    await page.fill('#f-heslo input[name=current]', zal.password);
+    await page.fill('#f-heslo input[name=next]', nove);
     await page.click('#f-heslo button[type=submit]');
     await page.waitForTimeout(2500);
     check('heslo změněno',
       ((await page.locator('#stav').textContent()) || '').includes('Heslo změněno'),
       await page.locator('#stav').textContent());
-
-    await page.fill('#f-heslo input[name=current]', docasne);
-    await page.fill('#f-heslo input[name=next]', creds['test@webkit.studio']);
-    await page.click('#f-heslo button[type=submit]');
-    await page.waitForTimeout(2500);
-    check('heslo vráceno zpátky',
-      ((await page.locator('#stav').textContent()) || '').includes('Heslo změněno'));
-    await page.screenshot({ path: OUT + 'set-ucet.png', fullPage: true });
     await ctx.close();
+
+    /* a nove heslo opravdu plati */
+    const ctx2 = await browser.newContext();
+    const page2 = await ctx2.newPage();
+    await page2.goto(BASE + '/client/login', { waitUntil: 'domcontentloaded' });
+    await page2.fill('input[name=email]', email);
+    await page2.fill('input[name=password]', nove);
+    await page2.click('button[type=submit]');
+    await page2.waitForTimeout(1800);
+    check('novým heslem se účet přihlásí', page2.url().endsWith('/client/dashboard'), page2.url());
+    await ctx2.close();
   }
 
   /* ---------- Správa projektů ---------- */

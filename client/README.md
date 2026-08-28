@@ -58,7 +58,17 @@ Na komentář: `id`, `version`, `view`, `section`, `x`, `y`, `parentId`,
 dotaz sahá výhradně do `comments`.
 
 `format=md` vrací `text/markdown` ve stejném tvaru jako tlačítko Export
-v prohlížeči návrhu. Dvě věci server vědět nemůže, protože je prohlížeč čte
+v prohlížeči návrhu. U každého komentáře je i pozice pinu v sekci a odkaz,
+který prohlížeč návrhu otevře rovnou na něm:
+
+```
+**1. Lukáš S.** – 27. 8. 2026 21:48 – Počítač – otevřený
+Pozice: vlevo nahoře (12 % zleva, 20 % shora v rámci sekce) · [otevřít pin](/client/arbosis/v2/desktop#c=…)
+```
+
+Bez pozice se strohé komentáře („tohle zkrátit") nedají k ničemu přiřadit –
+člověk je psal s prstem na místě. `x`/`y` jsou podíl šířky a výšky **sekce**,
+ne celé stránky. Dvě věci server vědět nemůže, protože je prohlížeč čte
 z vykresleného plátna: pořadí sekcí a jméno klienta z lišty. Použije se pro
 ně stejná záložní větev, jakou má prohlížeč – pořadí podle prvního výskytu
 a slug projektu.

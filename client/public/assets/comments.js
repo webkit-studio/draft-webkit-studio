@@ -792,6 +792,19 @@
     return (tc && tc.textContent.trim()) || PROJECT;
   }
 
+  /* Kde pin sedí. Komentáře bývají strohé („tohle zkrátit"), protože je člověk
+     psal s prstem na místě - bez pozice se pak nedá poznat, na co ukazují.
+     x/y jsou podíl šířky a výšky SEKCE, ne celé stránky, tak se to i píše. */
+  function pozice(c) {
+    if (c.x == null || c.y == null) return '';
+    var px = Math.round(c.x * 100);
+    var py = Math.round(c.y * 100);
+    var vodorovne = px < 33 ? 'vlevo' : px > 66 ? 'vpravo' : 'uprostřed';
+    var svisle = py < 33 ? 'nahoře' : py > 66 ? 'dole' : 've středu';
+    var slovy = (vodorovne === 'uprostřed' && svisle === 've středu') ? 'uprostřed' : vodorovne + ' ' + svisle;
+    return slovy + ' (' + px + ' % zleva, ' + py + ' % shora v rámci sekce)';
+  }
+
   /* Export je úplný záznam projektu+verze – filtry na něj nemají vliv. */
   function buildMarkdown() {
     var lines = [];
@@ -814,6 +827,9 @@
         lines.push('');
         lines.push('**' + (numbers[c.id] || '–') + '. ' + c.author_name + '** – ' + fmtAbs(c.created_at) +
           ' – ' + (VIEW_LABELS[c.view] || c.view) + ' – ' + (c.resolved ? 'vyřešený' : 'otevřený'));
+        var kde = pozice(c);
+        var odkaz = '/client/' + PROJECT + '/' + VERSION + '/' + c.view + '#c=' + c.id;
+        lines.push('Pozice: ' + (kde || 'neurčená') + ' · [otevřít pin](' + odkaz + ')');
         lines.push('');
         c.body.split('\n').forEach(function (ln) { lines.push(ln); });
         replies(c.id).forEach(function (r) {

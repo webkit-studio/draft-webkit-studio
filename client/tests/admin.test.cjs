@@ -278,7 +278,29 @@ async function login(ctx, email) {
       sebe.status === 400 && sebe.body.error === 'cannot-delete-self', `stav ${sebe.status}`);
 
     /* Ucet, ktery uz neco napsal, se nemaze - komentare maji zustat.
-       test@webkit.studio ma komentare z predchozich sad. */
+       Komentar si test zaklada sam. Drive spolehal na to, ze test@webkit.studio
+       ma komentare z predchozich sad; kdyz nektera z nich spadla, DELETE poslusne
+       prosel a vypadalo to jako chyba v opravneni, ne jako chybejici predpoklad. */
+    /* Komentar musi napsat prave ten ucet, ktery se pak zkousi smazat - server
+       bere autora ze session, ne z tela pozadavku, takze kdyby ho zalozil admin,
+       DELETE by prosel a test by nic neoveril. */
+    {
+      const ctxK = await browser.newContext();
+      const pageK = await login(ctxK, 'test@webkit.studio');
+      await pageK.evaluate(async () => {
+        await fetch('/client/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project: 'arbosis', version: 'v2', view: 'desktop',
+            section: 'D1 Hero', x: 0.5, y: 0.5, body: 'Komentar pro test mazani uctu'
+          })
+        });
+      });
+      await ctxK.close();
+      await zajistiServer();
+    }
+
     const sKom = await znovuPri500(page, () => page.evaluate(async () => {
       const d = await (await fetch('/client/api/admin/users')).json();
       const u = d.users.find((x) => x.email === 'test@webkit.studio');

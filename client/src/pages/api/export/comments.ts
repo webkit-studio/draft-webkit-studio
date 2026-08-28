@@ -73,6 +73,20 @@ interface Radek {
    pořadí sekcí a jméno klienta z lišty. Prohlížeč má pro obojí stejnou
    záložní větev - pořadí podle prvního výskytu a slug projektu - a tady
    se použije rovnou ona, takže se výstupy neliší tvarem, jen tímhle. */
+/* Kde pin sedi. Komentare byvaji strohe ("tohle zkratit"), protoze je clovek
+   psal s prstem na miste - bez pozice se pak neda poznat, na co ukazuji.
+   x/y jsou podil sirky a vysky SEKCE, ne cele stranky, takze se to tak i pise.
+   Slovni urceni je navic: "vlevo nahore" se cte rychleji nez dve procenta. */
+function pozice(c: Radek): string {
+  if (c.x == null || c.y == null) return '';
+  const px = Math.round(c.x * 100);
+  const py = Math.round(c.y * 100);
+  const vodorovne = px < 33 ? 'vlevo' : px > 66 ? 'vpravo' : 'uprostřed';
+  const svisle = py < 33 ? 'nahoře' : py > 66 ? 'dole' : 've středu';
+  const slovy = vodorovne === 'uprostřed' && svisle === 've středu' ? 'uprostřed' : `${vodorovne} ${svisle}`;
+  return `${slovy} (${px} % zleva, ${py} % shora v rámci sekce)`;
+}
+
 function buildMarkdown(rows: Radek[], project: string, version: string | null): string {
   const lines: string[] = [];
   lines.push(`# ${project} – ${version || 'všechny verze'} – komentáře`);
@@ -98,6 +112,10 @@ function buildMarkdown(rows: Radek[], project: string, version: string | null): 
         `**${cisla.get(c.id) || '–'}. ${c.author_name}** – ${fmtAbs(c.created_at)} – ` +
           `${VIEW_LABELS[c.view] || c.view} – ${c.resolved ? 'vyřešený' : 'otevřený'}`
       );
+      const kde = pozice(c);
+      /* Odkaz otevre prohlizec navrhu rovnou na tomhle pinu. */
+      const odkaz = `/client/${project}/${c.version}/${c.view}#c=${c.id}`;
+      lines.push(`Pozice: ${kde || 'neurčená'} · [otevřít pin](${odkaz})`);
       lines.push('');
       for (const ln of c.body.split('\n')) lines.push(ln);
       for (const r of rows.filter((x) => x.parent_id === c.id)) {
