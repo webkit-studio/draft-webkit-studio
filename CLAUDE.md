@@ -223,22 +223,23 @@ Endpoint je výhradně pro čtení a sahá jen do tabulky `comments`.
    a rovnou nabídnout merge. Nikdy nehlásit „hotovo" nad něčím, co leží
    jen na větvi.
 
-### Plátno je na dvou místech
+### Kde plátno je
 
-Od přechodu na Webflow Cloud existuje každé plátno dvakrát a **musí se měnit
-obojí**, jinak se úprava projeví jen na jednom z nich:
+Plátno má od přechodu na Webflow Cloud jediné místo:
 
-| Cesta | Kdo to servíruje |
+| Cesta | K čemu |
 |---|---|
-| `/<slug>/v<N>/{desktop,mobile}.html` | GitHub Pages – draft.webkit.studio |
-| `client/src/viewers/<slug>/v<N>/{desktop,mobile}.html` | Astro appka – webkit.studio/client |
+| `client/src/viewers/<slug>/v<N>/{desktop,mobile}.html` | plátno, které appka servíruje |
+| `client/public/<slug>/v<N>/assets/` | assety plátna (relativní odkazy zevnitř sedí) |
+| `/<slug>/v<N>/{desktop,mobile}.html` | **jen přesměrování** na `/client/...`, nesahat |
 
-Assety plátna stejně tak: `/<slug>/v<N>/assets/` a `client/public/<slug>/v<N>/assets/`.
 Appka si plátno importuje přes `?raw`, takže se zapeče do buildu – bez commitu
-do `client/src/viewers/` se v ní nezmění nic. Nová verze se navíc musí zapsat
-do `client/src/lib/versions.ts` a `client/src/lib/viewer.ts`.
+do `client/src/viewers/` se nezmění nic. Nová verze se navíc musí zapsat do
+`client/src/lib/versions.ts` a `client/src/lib/viewer.ts`.
 
-Po nasazení ověřit obojí, ne jen jedno.
+Dřív existovalo plátno dvakrát a úprava se musela dělat v obou kopiích. To už
+neplatí – na Pages zbyly jen přesměrovací stránky. Assety v `/<slug>/v<N>/assets/`
+tam zůstaly, ale nic je nepoužívá.
 
 ### Nový klient
 1. V Supabase založit/upravit uživatele klienta: heslo drží Lukáš mimo
