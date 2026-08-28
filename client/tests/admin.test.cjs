@@ -107,7 +107,11 @@ async function login(ctx, email) {
     await page.fill('input[name=password]', creds[email].password);
     await page.click('button[type=submit]').catch(() => {});
     await page.waitForTimeout(1800);
-    if (!page.url().includes('/client/login')) return page;
+    /* Musime videt dashboard, ne jen "uz nejsme na /client/login": kdyz server
+       umre behem POSTu, prohlizec skonci na chybove strance u /client/api/login
+       a ta podminku "neni login" splni - prihlaseni pritom neprobehlo a vsechny
+       dalsi kontroly pak hlasi 401, jako by selhalo opravneni. */
+    if (page.url().includes('/client/dashboard')) return page;
     console.log(`… přihlášení ${email} neprošlo, zkouším znovu (${pokus}/3)`);
   }
   throw new Error(`Nepodařilo se přihlásit ${email}`);
@@ -274,7 +278,29 @@ async function login(ctx, email) {
       sebe.status === 400 && sebe.body.error === 'cannot-delete-self', `stav ${sebe.status}`);
 
     /* Ucet, ktery uz neco napsal, se nemaze - komentare maji zustat.
-       test@webkit.studio ma komentare z predchozich sad. */
+       Komentar si test zaklada sam. Drive spolehal na to, ze test@webkit.studio
+       ma komentare z predchozich sad; kdyz nektera z nich spadla, DELETE poslusne
+       prosel a vypadalo to jako chyba v opravneni, ne jako chybejici predpoklad. */
+    /* Komentar musi napsat prave ten ucet, ktery se pak zkousi smazat - server
+       bere autora ze session, ne z tela pozadavku, takze kdyby ho zalozil admin,
+       DELETE by prosel a test by nic neoveril. */
+    {
+      const ctxK = await browser.newContext();
+      const pageK = await login(ctxK, 'test@webkit.studio');
+      await pageK.evaluate(async () => {
+        await fetch('/client/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project: 'arbosis', version: 'v2', view: 'desktop',
+            section: 'D1 Hero', x: 0.5, y: 0.5, body: 'Komentar pro test mazani uctu'
+          })
+        });
+      });
+      await ctxK.close();
+      await zajistiServer();
+    }
+
     const sKom = await znovuPri500(page, () => page.evaluate(async () => {
       const d = await (await fetch('/client/api/admin/users')).json();
       const u = d.users.find((x) => x.email === 'test@webkit.studio');

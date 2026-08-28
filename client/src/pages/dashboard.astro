@@ -16,8 +16,10 @@ if (db && user.projects.length) {
 }
 ---
 
-<Layout title="Přehled – Webkit.Studio">
+<Layout title="Projekty – Webkit.Studio">
   <div class="mx-auto max-w-container px-5 py-8">
+    <h1 class="mb-6 text-h3 font-semibold">Projekty</h1>
+
     {projects.length === 0 ? (
       <p class="text-gray-500">Zatím tu nic není.</p>
     ) : (
