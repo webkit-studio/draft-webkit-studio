@@ -1,6 +1,7 @@
 /* Správa uživatelů: zakládání účtů, hesla, přístupy - a hlavně to,
    že se do toho klient nedostane ani oklikou. */
 const { chromium } = require('playwright-core');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 
 const BASE = 'http://127.0.0.1:8788';
@@ -13,11 +14,12 @@ for (const line of fs.readFileSync(OUT + 'creds.txt', 'utf8').split('\n')) {
 }
 
 
-/* Lokalni wrangler dev worker po nekolika pozadavcich recykluje a pozadavek,
-   ktery spadne do mezery, dostane 500. Overeno experimentem: 500 sedne vzdy
-   na stejnou POZICI v poradi, ne na konkretni endpoint - pri prohozeni poradi
-   se presune jinam. Proto se pri 500 pocka na navrat serveru a zkusi znovu.
-   Kdyby endpoint vracel 500 doopravdy, vrati ji i druhy pokus a test spadne. */
+/* Lokalni wrangler dev si obcas sam shodi ProxyController prazdnou chybou
+   (v jeho logu: ProxyController2.emitErrorEvent -> castErrorCause) a pozadavek,
+   ktery do te mezery spadne, dostane 500 nebo se spojeni utrhne. S aplikaci to
+   nesouvisi - v produkci bezi skutecny Worker a zadny proxy controller tam
+   neni. Pri 500 se proto pocka na navrat serveru a zkusi se znovu. Kdyby
+   endpoint vracel 500 doopravdy, vrati ji i druhy pokus a test spadne. */
 async function zivy(page) {
   for (let i = 0; i < 30; i++) {
     const ok = await page.evaluate(async () => {
@@ -28,6 +30,48 @@ async function zivy(page) {
     await new Promise((r) => setTimeout(r, 1000));
   }
   return false;
+}
+
+/* Ctverice pozadavku na /api/admin spolehlive shodi wrangler dev - overeno
+   i pres curl, bez Playwrightu, a 500 sedne vzdy na POZICI v poradi, ne na
+   konkretni endpoint (s /access na prvnim miste vrati spravne 403 a 500
+   spadne az na paty pozadavek). Produkce stejnou davku unese: 24 pozadavku,
+   24x spravny stav. Server je tedy potreba umet nahodit i uprostred testu -
+   sama navigace mrtvy proces neozivi. */
+const SERVE = OUT + 'serve.sh';
+
+async function serverZije() {
+  try {
+    const r = await fetch(BASE + '/client/login', { headers: { connection: 'close' } });
+    return r.status === 200;
+  } catch {
+    return false;
+  }
+}
+
+async function zajistiServer() {
+  if (await serverZije()) return true;
+  try { execFileSync('sh', [SERVE], { stdio: 'pipe' }); } catch { /* zkusi se znovu nize */ }
+  for (let i = 0; i < 30; i++) {
+    if (await serverZije()) return true;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return false;
+}
+
+/* Navigace, ktera prezije pad serveru pod rukama. */
+async function jdiNa(page, url) {
+  let posledni;
+  for (let pokus = 0; pokus < 3; pokus++) {
+    await zajistiServer();
+    try {
+      return await page.goto(url, { waitUntil: 'domcontentloaded' });
+    } catch (e) {
+      posledni = e;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+  throw posledni;
 }
 
 async function znovuPri500(page, fn) {
@@ -50,14 +94,23 @@ const check = (name, ok, detail = '') => {
   ok ? pass++ : fail++;
 };
 
+/* Prihlaseni umi spadnout do mezery po padu serveru: POST se neodesle,
+   session nevznikne a vsechny nasledujici kontroly pak hlasi 401, jako by
+   selhalo opravneni. To uz jednou stalo hodiny hledani, tak se tady rovnou
+   overuje, jestli prihlaseni opravdu prosic - a kdyz ne, zkusi se znovu. */
 async function login(ctx, email) {
   const page = await ctx.newPage();
-  await page.goto(BASE + '/client/login', { waitUntil: 'domcontentloaded' });
-  await page.fill('input[name=email]', email);
-  await page.fill('input[name=password]', creds[email].password);
-  await page.click('button[type=submit]');
-  await page.waitForTimeout(1800);
-  return page;
+  for (let pokus = 1; pokus <= 3; pokus++) {
+    await zajistiServer();
+    await jdiNa(page, BASE + '/client/login');
+    await page.fill('input[name=email]', email);
+    await page.fill('input[name=password]', creds[email].password);
+    await page.click('button[type=submit]').catch(() => {});
+    await page.waitForTimeout(1800);
+    if (!page.url().includes('/client/login')) return page;
+    console.log(`… přihlášení ${email} neprošlo, zkouším znovu (${pokus}/3)`);
+  }
+  throw new Error(`Nepodařilo se přihlásit ${email}`);
 }
 
 (async () => {
@@ -110,42 +163,59 @@ async function login(ctx, email) {
     }));
     check('klient: POST /api/admin/access -> 403', a === 403, `stav ${a}`);
     await ctx.close();
+    /* Prave tady server obvykle lezi - dalsi faze by jinak spadla na goto. */
+    await zajistiServer();
   }
 
   /* --- admin: Správa funguje --- */
   if (faze === 'vse' || faze === 'admin') {
     const ctx = await browser.newContext();
     const page = await login(ctx, 'lukas@webkit.studio');
-    await page.goto(BASE + '/client/admin', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1200);
 
-    const rows = await page.locator('#seznam > div').count();
-    check('admin vidí seznam uživatelů', rows >= 2, `řádků ${rows}`);
+    /* Sprava se prestehovala do nastaveni; stara adresa jen presmerovava.
+       Proklikani te stranky ma na starost settings.test.cjs - tady se testuje
+       samotne API, tedy to, co plati i kdyz UI vypada jinak. */
+    await jdiNa(page, BASE + '/client/admin');
+    await page.waitForTimeout(600);
+    check('stará adresa /client/admin vede do nastavení',
+      page.url().endsWith('/client/settings/users'), page.url());
 
-    const disabled = await page.locator('#seznam input[type=password][disabled]').count();
-    check('bez známého hesla je pole neaktivní', disabled >= 1, `polí ${disabled}`);
+    const seznam = await znovuPri500(page, () => page.evaluate(async () => {
+      const res = await fetch('/client/api/admin/users');
+      return { status: res.status, body: await res.json() };
+    }));
+    check('admin vidí seznam uživatelů',
+      seznam.status === 200 && seznam.body.users.length >= 2,
+      `uživatelů ${seznam.body && seznam.body.users ? seznam.body.users.length : '?'}`);
+    check('seznam nese i projekty pro přidělování',
+      Array.isArray(seznam.body.projects) && seznam.body.projects.length >= 1,
+      `projektů ${seznam.body.projects ? seznam.body.projects.length : '?'}`);
+    check('seznam nevrací otisky hesel',
+      !JSON.stringify(seznam.body).includes('pbkdf2'));
 
     /* založení účtu */
-    await page.fill('#novy input[name=email]', novyEmail);
-    await page.fill('#novy input[name=firstName]', 'Pokusný');
-    await page.fill('#novy input[name=lastName]', 'Účet');
-    await page.click('#novy button[type=submit]');
-    await page.waitForTimeout(1800);
+    const zal = await znovuPri500(page, () => page.evaluate(async (mail) => {
+      const res = await fetch('/client/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: mail, firstName: 'Pokusný', lastName: 'Účet' })
+      });
+      return { status: res.status, body: await res.json() };
+    }, novyEmail));
+    check('účet založen', zal.status === 201, `stav ${zal.status}`);
+    novePwd = zal.body && zal.body.password;
+    check('vygenerované heslo přišlo v odpovědi',
+      !!novePwd && novePwd.length >= 12, novePwd ? `${novePwd.length} znaků` : 'chybí');
 
-    const stav = await page.locator('#stav').textContent();
-    check('účet založen', (stav || '').includes('založen'), (stav || '').slice(0, 70));
-
-    const rows2 = await page.locator('#seznam > div').count();
-    check('seznam se rozrostl', rows2 === rows + 1, `${rows} -> ${rows2}`);
-
-    /* heslo nového účtu je vidět v jeho řádku */
-    novePwd = await page.evaluate((mail) => {
-      const rowsEls = Array.from(document.querySelectorAll('#seznam > div'));
-      const row = rowsEls.find((r) => r.textContent.includes(mail));
-      const inp = row && row.querySelector('input[type=password]:not([disabled])');
-      return inp ? inp.value : null;
-    }, novyEmail);
-    check('vygenerované heslo je v řádku', !!novePwd && novePwd.length >= 12, novePwd ? `${novePwd.length} znaků` : 'chybí');
+    const znovu = await znovuPri500(page, () => page.evaluate(async (mail) => {
+      const res = await fetch('/client/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: mail })
+      });
+      return res.status;
+    }, novyEmail));
+    check('stejný e-mail podruhé neprojde', znovu === 409, `stav ${znovu}`);
 
     /* přidělení přístupu */
     const ok = await page.evaluate(async (mail) => {
@@ -193,7 +263,29 @@ async function login(ctx, email) {
     /* nove heslo plati misto stareho */
     if (rot.status === 200) novePwd = rot.body.password;
 
-    await page.screenshot({ path: OUT + 'app-admin.png', fullPage: true });
+    /* --- mazání účtu a jeho tři pojistky --- */
+    const sebe = await znovuPri500(page, () => page.evaluate(async () => {
+      const d = await (await fetch('/client/api/admin/users')).json();
+      const me = d.users.find((x) => x.email === 'lukas@webkit.studio');
+      const r2 = await fetch(`/client/api/admin/users?id=${me.id}`, { method: 'DELETE' });
+      return { status: r2.status, body: await r2.json() };
+    }));
+    check('admin nesmaže sám sebe',
+      sebe.status === 400 && sebe.body.error === 'cannot-delete-self', `stav ${sebe.status}`);
+
+    /* Ucet, ktery uz neco napsal, se nemaze - komentare maji zustat.
+       test@webkit.studio ma komentare z predchozich sad. */
+    const sKom = await znovuPri500(page, () => page.evaluate(async () => {
+      const d = await (await fetch('/client/api/admin/users')).json();
+      const u = d.users.find((x) => x.email === 'test@webkit.studio');
+      const r2 = await fetch(`/client/api/admin/users?id=${u.id}`, { method: 'DELETE' });
+      return { status: r2.status, body: await r2.json() };
+    }));
+    check('účet s komentáři se nesmaže',
+      sKom.status === 409 && sKom.body.error === 'has-comments',
+      `stav ${sKom.status} ${JSON.stringify(sKom.body).slice(0, 60)}`);
+    check('a řekne, kolik komentářů to je', Number(sKom.body.pocet) > 0, `${sKom.body.pocet}`);
+
     await ctx.close();
   }
 
@@ -201,7 +293,7 @@ async function login(ctx, email) {
   if (novePwd && (faze === 'vse' || faze === 'admin')) {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
-    await page.goto(BASE + '/client/login', { waitUntil: 'domcontentloaded' });
+    await jdiNa(page, BASE + '/client/login');
     await page.fill('input[name=email]', novyEmail);
     await page.fill('input[name=password]', novePwd);
     await page.click('button[type=submit]');

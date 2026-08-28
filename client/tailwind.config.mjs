@@ -63,6 +63,10 @@ export default {
         quarter: '100%'
       },
 
+      /* Pozor: tohle je vlastni skala, ne Tailwind default. Klice 1-10 znaci
+         kroky systemu, takze h-8 je 64 px, ne 32. Pro konkretni rozmer prvku
+         (avatar, ikonove tlacitko) pouzij radsi h-[32px] - jinak vznikne
+         cerna placka pres celou listu, coz uz se jednou stalo. */
       spacing: {
         1: '4px', 2: '8px', 3: '12px', 4: '16px', 5: '24px',
         6: '32px', 7: '48px', 8: '64px', 9: '96px', 10: '128px'

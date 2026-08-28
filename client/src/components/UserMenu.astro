@@ -1,0 +1,93 @@
+---
+/* Účet v hlavičce: dlaždice s iniciálou, jméno, po kliknutí nabídka.
+ *
+ * Struktura je Relume Topbar 1 (avatar → DropdownMenu s Nastavením
+ * a Odhlášením), vzhled z /design/webkit/. Radix se sem netahá kvůli jedné
+ * nabídce - je to pár řádků obsluhy a Worker si nenese motion ani cva.
+ *
+ * Dlaždice je hranatá, ne kolečko: design systém má radius 0 všude a jediná
+ * povolená výjimka je značková čtvrtkružnice. Kolečko by bylo jediný oblý
+ * prvek v celé aplikaci. */
+import { displayName, initial } from '../lib/db';
+
+const user = Astro.locals.user!;
+const jmeno = displayName(user);
+const pismeno = initial(user);
+---
+
+<div class="relative" data-usermenu>
+  <button
+    type="button"
+    class="flex items-center gap-3 py-1 pl-1 pr-2 text-small transition-colors duration-fast ease-out hover:text-accent"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    data-usermenu-trigger
+  >
+    <span
+      class="flex h-[32px] w-[32px] flex-none items-center justify-center bg-black text-[13px] font-bold leading-none text-white"
+      aria-hidden="true">{pismeno}</span>
+    <span class="hidden font-medium sm:inline">{jmeno}</span>
+    <span class="text-tiny text-gray-500 transition-transform duration-fast ease-out" aria-hidden="true" data-usermenu-caret>▾</span>
+  </button>
+
+  <div
+    class="absolute right-0 top-[calc(100%+8px)] z-50 hidden w-[220px] border border-gray-300 bg-white"
+    role="menu"
+    data-usermenu-panel
+  >
+    <div class="border-b border-gray-300 px-4 py-3">
+      <div class="truncate font-semibold">{jmeno}</div>
+      <div class="truncate text-tiny text-gray-500">{user.email}</div>
+    </div>
+    <a
+      href="/client/settings/account"
+      role="menuitem"
+      class="block px-4 py-3 text-small transition-colors duration-fast ease-out hover:bg-gray-100"
+      >Nastavení</a
+    >
+    <form method="post" action="/client/api/logout" class="border-t border-gray-300">
+      <button
+        type="submit"
+        role="menuitem"
+        class="block w-full px-4 py-3 text-left text-small transition-colors duration-fast ease-out hover:bg-gray-100 hover:text-accent"
+        >Odhlásit</button
+      >
+    </form>
+  </div>
+</div>
+
+<script>
+  /* Jedna nabídka na stránku, obsluha delegovaná - ať funguje i v prohlížeči
+     návrhu, kam se hlavička vkládá jako hotové HTML. */
+  const wrap = document.querySelector('[data-usermenu]');
+  if (wrap) {
+    const trigger = wrap.querySelector('[data-usermenu-trigger]') as HTMLButtonElement;
+    const panel = wrap.querySelector('[data-usermenu-panel]') as HTMLElement;
+    const caret = wrap.querySelector('[data-usermenu-caret]') as HTMLElement;
+
+    const zavri = () => {
+      panel.classList.add('hidden');
+      trigger.setAttribute('aria-expanded', 'false');
+      caret.style.transform = '';
+    };
+    const otevri = () => {
+      panel.classList.remove('hidden');
+      trigger.setAttribute('aria-expanded', 'true');
+      caret.style.transform = 'rotate(180deg)';
+    };
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      trigger.getAttribute('aria-expanded') === 'true' ? zavri() : otevri();
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target as Node)) zavri();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+        zavri();
+        trigger.focus();
+      }
+    });
+  }
+</script>

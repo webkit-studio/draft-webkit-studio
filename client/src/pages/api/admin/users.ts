@@ -95,3 +95,48 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   return json({ id, email, password }, 201);
 };
+
+/* Smazání účtu. Tři pojistky, všechny proti nevratné chybě:
+   - sám sebe smazat nejde, admin by si zavřel dveře;
+   - cizího admina taky ne, ten se ruší zásahem do databáze stejně, jako se
+     admin povyšuje;
+   - a účet, který po sobě nechal komentáře, se nemaže vůbec. Komentáře na
+     autora odkazují cizím klíčem bez kaskády, takže by to stejně spadlo na
+     databázi - a hlavně: připomínky ke grafice mají cenu i potom, co člověk
+     z projektu odejde. Místo mazání se takovému účtu odeberou přístupy.
+   Session a přidělené přístupy odejdou kaskádou. */
+export const DELETE: APIRoute = async ({ url, locals }) => {
+  const db = getDb();
+  if (!db) return json({ error: 'no-db' }, 503);
+
+  const me = locals.user!;
+  const id = String(url.searchParams.get('id') || '');
+  if (!id) return json({ error: 'bad-request' }, 400);
+  if (id === me.id) return json({ error: 'cannot-delete-self' }, 400);
+
+  const target = await db
+    .prepare(`SELECT id, email, role FROM users WHERE id = ?1`)
+    .bind(id)
+    .first<{ id: string; email: string; role: string }>();
+  if (!target) return json({ error: 'not-found' }, 404);
+  if (target.role === 'admin') return json({ error: 'cannot-delete-admin' }, 403);
+
+  const kom = await db
+    .prepare(`SELECT COUNT(*) AS n FROM comments WHERE author_id = ?1`)
+    .bind(id)
+    .first<{ n: number }>();
+  const pocet = Number(kom?.n ?? 0);
+  if (pocet > 0) return json({ error: 'has-comments', pocet }, 409);
+
+  await db.prepare(`DELETE FROM users WHERE id = ?1`).bind(id).run();
+
+  await logRequest(db, {
+    method: 'DELETE',
+    path: '/api/admin/users',
+    status: 200,
+    userId: me.id,
+    note: `smazan ucet ${target.email}`
+  });
+
+  return json({ id, smazano: true });
+};

@@ -65,8 +65,13 @@ const check = (name, ok, detail = '') => {
     check('admin přihlášen -> dashboard', page.url().endsWith('/client/dashboard'), page.url());
     const items = await page.locator('main li').count();
     check('admin vidí všech 7 projektů', items === 7, `nalezeno ${items}`);
-    const adminLink = await page.locator('a[href="/client/admin"]').count();
-    check('admin má odkaz na Správu', adminLink === 1);
+    /* Sprava se prestehovala do nastaveni, do nabidky pod avatarem. */
+    await page.click('[data-usermenu-trigger]');
+    await page.waitForTimeout(250);
+    check('admin se z nabídky dostane do nastavení',
+      (await page.locator('[data-usermenu-panel] a[href="/client/settings/account"]').count()) === 1);
+    await page.goto(BASE + '/client/settings/users', { waitUntil: 'domcontentloaded' });
+    check('admin má správu uživatelů', page.url().endsWith('/client/settings/users'), page.url());
     const cookie = (await ctx.cookies()).find((c) => c.name === 'wks');
     check('session cookie je HttpOnly', !!cookie && cookie.httpOnly, cookie ? `httpOnly=${cookie.httpOnly}` : 'chybí');
     check('session cookie je SameSite=Lax', !!cookie && cookie.sameSite === 'Lax', cookie ? String(cookie.sameSite) : '-');
@@ -86,18 +91,28 @@ const check = (name, ok, detail = '') => {
     check('klient přihlášen -> dashboard', page.url().endsWith('/client/dashboard'), page.url());
     const items = await page.locator('main li').count();
     check('klient vidí jen 1 projekt', items === 1, `nalezeno ${items}`);
-    const adminLink = await page.locator('a[href="/client/admin"]').count();
-    check('klient nemá odkaz na Správu', adminLink === 0);
+    /* Kontrola musi bezet az na nastaveni - na dashboardu zadny bocni panel
+       neni a test by prosel, i kdyby se tam sprava nabizela. */
+    await page.goto(BASE + '/client/settings/account', { waitUntil: 'domcontentloaded' });
+    const taby = await page.locator('nav[aria-label="Nastavení"] a').count();
+    check('klient má v nastavení jen Můj účet', taby === 1, `tabů ${taby}`);
+    check('klient nemá v nastavení správu uživatelů',
+      (await page.locator('nav[aria-label="Nastavení"] a[href="/client/settings/users"]').count()) === 0);
 
     /* pokus dostat se do Správy přímo - middleware musí odmítnout */
     await page.goto(BASE + '/client/admin', { waitUntil: 'domcontentloaded' });
     check('klient se do /client/admin nedostane', page.url().endsWith('/client/dashboard'), page.url());
+    await page.goto(BASE + '/client/settings/users', { waitUntil: 'domcontentloaded' });
+    check('klient se do správy uživatelů nedostane',
+      page.url().endsWith('/client/settings/account'), page.url());
 
     await page.screenshot({ path: OUT + 'app-client-dashboard.png', fullPage: true });
 
-    /* odhlášení */
+    /* odhlášení - je v nabídce pod avatarem, tu je potřeba nejdřív otevřít */
     await page.goto(BASE + '/client/dashboard', { waitUntil: 'domcontentloaded' });
-    await page.click('button[type=submit]');
+    await page.click('[data-usermenu-trigger]');
+    await page.waitForTimeout(250);
+    await page.click('[data-usermenu-panel] form[action="/client/api/logout"] button');
     await page.waitForTimeout(1500);
     check('odhlášení vrátí na login', page.url().endsWith('/client/login'), page.url());
     await ctx.close();

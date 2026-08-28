@@ -26,6 +26,19 @@ export function displayName(u: Pick<SessionUser, 'firstName' | 'lastName' | 'ema
   return u.email;
 }
 
+/* Iniciála do avataru. Bere se z křestního jména, protože tak se lidé
+   poznávají; bez jména padá na e-mail, ať tam nikdy nezůstane prázdno. */
+export function initial(u: Pick<SessionUser, 'firstName' | 'lastName' | 'email'>): string {
+  const zdroj = (u.firstName || '').trim() || (u.lastName || '').trim() || u.email;
+  return zdroj.charAt(0).toLocaleUpperCase('cs');
+}
+
+/* Celé jméno pro nastavení a seznamy - tam zkratka příjmení nedává smysl. */
+export function fullName(u: Pick<SessionUser, 'firstName' | 'lastName' | 'email'>): string {
+  const cele = [(u.firstName || '').trim(), (u.lastName || '').trim()].filter(Boolean).join(' ');
+  return cele || u.email;
+}
+
 export async function userFromToken(db: D1Database, token: string): Promise<SessionUser | null> {
   const id = await tokenId(token);
   const row = await db

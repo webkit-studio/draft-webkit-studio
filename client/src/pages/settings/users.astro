@@ -1,0 +1,292 @@
+---
+/* Správa uživatelů. Jen pro admina - hlídá middleware, ne tahle stránka.
+ *
+ * Hesla: uložené heslo přečíst nelze, v databázi je jednosměrný otisk. Řádek
+ * proto žádné heslo neukazuje - dokud se nevygeneruje nové. To se ukáže
+ * jednou, drží ho jen tahle stránka do zavření a jde zkopírovat. Kdo si svoje
+ * heslo pamatuje, mění si ho sám v Mém účtu; sem se chodí pro zapomenutá. */
+import SettingsShell from '../../components/SettingsShell.astro';
+
+export const prerender = false;
+---
+
+<SettingsShell title="Správa uživatelů" tab="users">
+  <ul id="seznam" class="border-t border-gray-300"></ul>
+  <p class="mt-4 text-tiny text-gray-500">
+    Nový účet vzniká bez role a bez přístupů. Roli admina lze dát jen zásahem do databáze.
+  </p>
+</SettingsShell>
+
+<script>
+  import { ikona, radek, poleText, tlacitko, potvrd, mnozne, KOMENTAR } from '../../lib/ui';
+
+  const stav = (t: string, e = false) => (window as any).stav(t, e);
+  const seznam = document.getElementById('seznam')!;
+
+  /* Vygenerovaná hesla drží jen tahle stránka, do jejího zavření. Nikam se
+     neukládají a po obnovení už je nikdo nepřečte. */
+  const hesla = new Map<string, string>();
+
+  const CHYBY: Record<string, string> = {
+    'invalid-email': 'Neplatný e-mail.',
+    'email-exists': 'Účet s tímhle e-mailem už existuje.',
+    'forbidden': 'Heslo jinému adminovi měnit nelze.',
+    'admin-has-all': 'Admin má přístup ke všem projektům z definice role.',
+    'unknown-project': 'Neznámý projekt.',
+    'not-found': 'Uživatel neexistuje.',
+    'cannot-delete-self': 'Sám sebe smazat nemůžeš.',
+    'cannot-delete-admin': 'Admina smazat nelze – ruší se zásahem do databáze.',
+    'no-db': 'Databáze není připojená.'
+  };
+  const popis = (data: any, status: number) =>
+    data?.error === 'has-comments'
+      ? `Účet napsal ${data.pocet} ${mnozne(data.pocet, KOMENTAR)}, a ty mají zůstat. ` +
+        'Místo mazání mu odeber přístupy.'
+      : CHYBY[data?.error] || `Nepovedlo se (${data?.error || status}).`;
+
+  async function api(url: string, body?: unknown, method = body ? 'POST' : 'GET') {
+    const res = await fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(popis(data, res.status));
+    return data;
+  }
+
+  interface Uzivatel {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    role: string;
+    projects: string[];
+  }
+
+  const cele = (u: Uzivatel) =>
+    [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
+  const pismeno = (u: Uzivatel) =>
+    ((u.firstName || u.lastName || u.email).charAt(0) || '?').toLocaleUpperCase('cs');
+
+  /* --- pole s heslem: buď se neví, nebo se právě vygenerovalo --- */
+  function poleHesla(u: Uzivatel): HTMLDivElement {
+    const box = document.createElement('div');
+    box.className = 'flex flex-wrap items-center gap-2';
+
+    const znamé = hesla.get(u.id);
+    if (znamé) {
+      const pole = document.createElement('input');
+      pole.readOnly = true;
+      pole.type = 'text';
+      pole.value = znamé;
+      pole.className =
+        'h-11 min-w-[220px] flex-1 border border-gray-300 bg-white px-3 font-mono text-small outline-none';
+      pole.setAttribute('aria-label', `Nové heslo pro ${u.email}`);
+      box.appendChild(pole);
+
+      const kopie = tlacitko(ikona('copy'), 'icon', 'Zkopírovat heslo');
+      kopie.className = kopie.className.replace('h-[32px] w-[32px]', 'h-11 w-11');
+      kopie.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(znamé);
+          stav('Heslo zkopírováno.');
+        } catch {
+          pole.select();
+          stav('Kopírování prohlížeč nepovolil – heslo je vybrané, zkopíruj ho klávesnicí.', true);
+        }
+      });
+      box.appendChild(kopie);
+    } else {
+      const text = document.createElement('p');
+      text.className = 'flex-1 text-small text-gray-500';
+      text.textContent = 'Uložené heslo přečíst nelze – v databázi je jen jeho otisk.';
+      box.appendChild(text);
+    }
+
+    const gen = tlacitko(znamé ? 'Generovat znovu' : 'Generovat nové heslo', 'ghost');
+    gen.addEventListener('click', async () => {
+      gen.disabled = true;
+      try {
+        const r = await api('/client/api/admin/password', { userId: u.id });
+        hesla.set(u.id, r.password);
+        stav(`Nové heslo pro ${u.email} vygenerováno. Zůstane tu do zavření stránky.`);
+        await nacti();
+      } catch (e: any) {
+        stav(e.message, true);
+        gen.disabled = false;
+      }
+    });
+    box.appendChild(gen);
+
+    return box;
+  }
+
+  /* --- řádek pro přidání --- */
+  function radekPridat(): HTMLLIElement {
+    const { li, hlava, obsah, telo, prepni } = radek();
+    hlava.className += ' text-accent';
+    const t = document.createElement('span');
+    t.className = 'font-semibold';
+    t.textContent = 'Přidat uživatele';
+    obsah.append(ikona('plus'), t);
+
+    const form = document.createElement('form');
+    form.className = 'flex flex-col gap-3';
+    const email = poleText('email', 'E-mail', { required: true, type: 'email' });
+    const first = poleText('firstName', 'Jméno');
+    const last = poleText('lastName', 'Příjmení');
+    form.append(email.wrap, first.wrap, last.wrap);
+
+    const ulozit = tlacitko('Založit účet', 'primary');
+    ulozit.type = 'submit';
+    const rada = document.createElement('div');
+    rada.className = 'flex gap-2';
+    rada.appendChild(ulozit);
+    form.appendChild(rada);
+    telo.appendChild(form);
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      ulozit.disabled = true;
+      try {
+        const r = await api('/client/api/admin/users', {
+          email: email.input.value,
+          firstName: first.input.value,
+          lastName: last.input.value
+        });
+        hesla.set(r.id, r.password);
+        form.reset();
+        prepni(false);
+        stav(`Účet ${r.email} založen. Heslo je v jeho řádku – po zavření stránky ho už nepřečteš.`);
+        await nacti();
+      } catch (e: any) {
+        stav(e.message, true);
+      } finally {
+        ulozit.disabled = false;
+      }
+    });
+
+    return li;
+  }
+
+  /* --- řádek uživatele --- */
+  function radekUzivatele(u: Uzivatel, projekty: { slug: string; name: string }[], ja: string): HTMLLIElement {
+    const { li, obsah, telo, akce } = radek();
+
+    const avatar = document.createElement('span');
+    avatar.className =
+      'flex h-[32px] w-[32px] flex-none items-center justify-center bg-black text-[13px] font-bold leading-none text-white';
+    avatar.setAttribute('aria-hidden', 'true');
+    avatar.textContent = pismeno(u);
+    obsah.appendChild(avatar);
+
+    const ident = document.createElement('span');
+    ident.className = 'min-w-0 flex-1';
+    const jm = document.createElement('span');
+    jm.className = 'font-semibold';
+    jm.textContent = cele(u);
+    ident.appendChild(jm);
+    if (u.role === 'admin') {
+      const znak = document.createElement('span');
+      znak.className = 'ml-2 text-tiny uppercase tracking-[0.08em] text-accent';
+      znak.textContent = 'admin';
+      ident.appendChild(znak);
+    }
+    const mail = document.createElement('span');
+    mail.className = 'block truncate text-tiny text-gray-500';
+    mail.textContent = u.email;
+    ident.appendChild(mail);
+    obsah.appendChild(ident);
+
+    const kolik = document.createElement('span');
+    kolik.className = 'hidden flex-none text-tiny text-gray-500 sm:block';
+    kolik.textContent =
+      u.role === 'admin' ? 'všechny projekty' : `${u.projects.length} z ${projekty.length} projektů`;
+    obsah.appendChild(kolik);
+
+    /* Admina ani sebe sama smazat nejde - tlačítko by jen slibovalo. */
+    if (u.role !== 'admin' && u.id !== ja) {
+      const smazat = tlacitko(ikona('trash'), 'icon', 'Smazat účet');
+      smazat.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!potvrd(`Smazat účet ${u.email}?`)) return;
+        try {
+          await api(`/client/api/admin/users?id=${encodeURIComponent(u.id)}`, undefined, 'DELETE');
+          stav(`Účet ${u.email} smazán.`);
+          await nacti();
+        } catch (err: any) {
+          stav(err.message, true);
+        }
+      });
+      akce.appendChild(smazat);
+    }
+
+    /* rozbalený obsah: heslo a přístupy */
+    const h2 = document.createElement('h3');
+    h2.className = 'mb-3 text-small font-semibold';
+    h2.textContent = 'Heslo';
+    telo.append(h2, poleHesla(u));
+
+    const h3 = document.createElement('h3');
+    h3.className = 'mb-3 mt-6 text-small font-semibold';
+    h3.textContent = 'Přístup k projektům';
+    telo.appendChild(h3);
+
+    if (u.role === 'admin') {
+      const p = document.createElement('p');
+      p.className = 'text-small text-gray-500';
+      p.textContent = 'Admin vidí všechny projekty z definice role.';
+      telo.appendChild(p);
+    } else {
+      const mrizka = document.createElement('div');
+      mrizka.className = 'grid gap-2 sm:grid-cols-2';
+      for (const p of projekty) {
+        const label = document.createElement('label');
+        label.className = 'flex cursor-pointer items-center gap-2 text-small';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'h-4 w-4 accent-accent';
+        cb.value = p.slug;
+        cb.checked = u.projects.includes(p.slug);
+        cb.addEventListener('change', async () => {
+          const vybrane = Array.from(mrizka.querySelectorAll('input[type=checkbox]'))
+            .filter((el) => (el as HTMLInputElement).checked)
+            .map((el) => (el as HTMLInputElement).value);
+          try {
+            await api('/client/api/admin/access', { userId: u.id, projects: vybrane });
+            stav(`Přístupy pro ${u.email} uloženy. Platí okamžitě.`);
+            kolik.textContent = `${vybrane.length} z ${projekty.length} projektů`;
+          } catch (e: any) {
+            cb.checked = !cb.checked;
+            stav(e.message, true);
+          }
+        });
+        label.append(cb, document.createTextNode(p.name));
+        mrizka.appendChild(label);
+      }
+      telo.appendChild(mrizka);
+    }
+
+    return li;
+  }
+
+  async function nacti() {
+    let data;
+    try {
+      data = await api('/client/api/admin/users');
+    } catch (e: any) {
+      stav(e.message, true);
+      return;
+    }
+    /* Kdo jsem, ať si nenabídnu vlastní koš. */
+    const ja = (document.body.dataset.me || '') as string;
+    seznam.innerHTML = '';
+    seznam.appendChild(radekPridat());
+    for (const u of data.users as Uzivatel[]) {
+      seznam.appendChild(radekUzivatele(u, data.projects, ja));
+    }
+  }
+
+  nacti();
+</script>

@@ -10,6 +10,10 @@ import type { D1Database } from '@cloudflare/workers-types';
 export interface Env {
   DB?: D1Database;
   SESSION_SECRET?: string;
+  /* Token pro read-only export komentářů. Schválně samostatný, ne
+     SESSION_SECRET: ten podepisuje session, kdežto tenhle se posílá
+     v hlavičce a skončí v historii příkazů. Nenastavený = export vypnutý. */
+  EXPORT_TOKEN?: string;
 }
 
 export function getEnv(): Env {

@@ -3,7 +3,7 @@
    "WEBKIT.STUDIO x NÁZEV", kde x je akcentní a pro čtečky skryté,
    název klienta uppercase přes CSS. */
 import '../styles/app.css';
-import { displayName } from '../lib/db';
+import UserMenu from './UserMenu.astro';
 
 interface Props {
   title: string;
@@ -30,7 +30,7 @@ const user = Astro.locals.user;
       rel="stylesheet"
     />
   </head>
-  <body class="min-h-screen bg-white text-black">
+  <body class="min-h-screen bg-white text-black" data-me={user ? user.id : undefined}>
     {!bare && (
       <header class="flex h-[52px] items-center justify-between border-b border-gray-300 px-5">
         <a href="/client/dashboard" class="flex items-center gap-3">
@@ -43,24 +43,7 @@ const user = Astro.locals.user;
           )}
         </a>
 
-        {user && (
-          <div class="flex items-center gap-4 text-small">
-            {user.role === 'admin' && (
-              <a href="/client/admin" class="text-gray-500 transition-colors duration-fast ease-out hover:text-accent">
-                Správa
-              </a>
-            )}
-            <span class="font-medium">{displayName(user)}</span>
-            <form method="post" action="/client/api/logout">
-              <button
-                type="submit"
-                class="text-gray-500 transition-colors duration-fast ease-out hover:text-accent"
-              >
-                Odhlásit
-              </button>
-            </form>
-          </div>
-        )}
+        {user && <UserMenu />}
       </header>
     )}
 
