@@ -65,6 +65,11 @@ const check = (name, ok, detail = '') => {
     check('admin přihlášen -> dashboard', page.url().endsWith('/client/dashboard'), page.url());
     const items = await page.locator('main li').count();
     check('admin vidí všech 7 projektů', items === 7, `nalezeno ${items}`);
+    check('dashboard má nadpis Projekty',
+      (await page.locator('main h1').textContent()) === 'Projekty',
+      await page.locator('main h1').textContent());
+    check('záložka se jmenuje stejně jako nadpis',
+      (await page.title()).startsWith('Projekty'), await page.title());
     /* Sprava se prestehovala do nastaveni, do nabidky pod avatarem. */
     await page.click('[data-usermenu-trigger]');
     await page.waitForTimeout(250);
