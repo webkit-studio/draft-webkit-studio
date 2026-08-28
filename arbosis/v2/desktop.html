@@ -304,16 +304,18 @@
         </section>
 
         <!-- section_reference -->
-        <section data-screen-label="D5 Reference" id="reference" style="position:relative;height:2700px;overflow:hidden">
-          <div data-rpin="" style="position:absolute;top:0;left:0;width:1440px;height:900px;overflow:hidden">
-            <div data-rcol="b" style="position:absolute;top:0;left:0;width:1440px;height:2600px;opacity:0.62"><img src="assets/reference/r5.webp" alt="" loading="lazy" style="position:absolute;left:110px;top:900px;width:225px;height:281px;object-fit:cover;display:block"><img src="assets/reference/r6.webp" alt="" loading="lazy" style="position:absolute;left:1140px;top:1750px;width:215px;height:269px;object-fit:cover;display:block"></div>
-            <div data-rcol="a" style="position:absolute;top:0;left:0;width:1440px;height:2600px"><img src="assets/reference/r1.webp" alt="" loading="lazy" style="position:absolute;left:30px;top:700px;width:300px;height:375px;object-fit:cover;display:block"><img src="assets/reference/r2.webp" alt="" loading="lazy" style="position:absolute;left:1110px;top:1150px;width:290px;height:362px;object-fit:cover;display:block"><img src="assets/reference/r3.webp" alt="" loading="lazy" style="position:absolute;left:70px;top:1700px;width:270px;height:338px;object-fit:cover;display:block"><img src="assets/reference/r4.webp" alt="" loading="lazy" style="position:absolute;left:1100px;top:2150px;width:250px;height:312px;object-fit:cover;display:block"></div>
-            <div data-rtxt="" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 48px">
-              <div style="max-width:620px;text-align:center">
-                <div style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#2D5A3F">Reference</div>
-                <h2 style="margin:14px 0 0;font-size:22px;font-weight:600;line-height:1.2;letter-spacing:-0.01em;color:#1B3A2D">Co říkají klienti</h2>
-                <div data-quote="" style="margin-top:26px;font-size:27px;font-weight:400;line-height:1.45;letter-spacing:-0.01em;color:#1B3A2D;text-wrap:pretty">„Arbosis nám postavil kompletně novou zahradu u rodinného domu. Velká část je v příkrém svahu – pomohli nám vymyslet, jak ho zpevnit a osázet, aby se dal využívat. Práce šly rychle a bez zbytečných vícenákladů, díky položenému trávníku jsme zahradu mohli používat prakticky hned. Oceňujeme komunikaci, rychlost a praktická, cenově rozumná řešení.“</div>
-                <div style="margin-top:28px;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#2D5A3F">Simona L. · Benešov · 2026</div>
+        <section data-screen-label="D5 Reference" id="reference" style="padding:clamp(72px,8cqw,112px) 0">
+          <div style="max-width:1280px;margin:0 auto;padding:0 clamp(24px,4cqw,48px)">
+            <div data-rv="0" style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#2D5A3F">Reference</div>
+            <h2 data-rv="60" style="margin:16px 0 0;font-size:clamp(1.875rem,3cqw,2.75rem);font-weight:600;line-height:1.1;letter-spacing:-0.02em;color:#1B3A2D">Co říkají klienti</h2>
+            <div style="margin-top:clamp(40px,4cqw,56px);display:grid;grid-template-columns:5fr 7fr;gap:clamp(36px,4cqw,64px);align-items:center">
+              <div data-rv="0" style="position:relative;aspect-ratio:4/3;background:#B8D9BE;background-image:repeating-linear-gradient(45deg,rgba(45,90,63,0.11) 0 2px,transparent 2px 11px);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#2D5A3F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:44px;height:44px;display:block;opacity:0.7"><circle cx="12" cy="9" r="6.5"/><path d="M12 21v-9.5"/><path d="M12 14.6 9.2 11.8"/><path d="M12 16.6 14.8 13.8"/></svg>
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#2D5A3F;text-align:center;padding:0 16px">FOTO · zahrada ve svahu · 4:3</div>
+              </div>
+              <div data-rv="120">
+                <div data-quote="" style="font-size:clamp(1.25rem,1.9cqw,1.6rem);font-weight:400;line-height:1.5;letter-spacing:-0.01em;color:#1B3A2D;text-wrap:pretty">„Arbosis nám postavil kompletně novou zahradu u rodinného domu. Velká část je v příkrém svahu – pomohli nám vymyslet, jak ho zpevnit a osázet, aby se dal využívat. Práce šly rychle a bez zbytečných vícenákladů, díky položenému trávníku jsme zahradu mohli používat prakticky hned. Oceňujeme komunikaci, rychlost a praktická, cenově rozumná řešení.“</div>
+                <div style="margin-top:26px;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#2D5A3F">Simona L. · Benešov · 2026</div>
               </div>
             </div>
           </div>
@@ -455,13 +457,6 @@ if(hero){var ws=$$('[data-hwi]',hero),sub=$$('[data-hsub]',hero),veil=$('[data-h
 var ro=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;var d=el.dataset.rv||0;el.style.transition='opacity 600ms '+EASE+' '+d+'ms,transform 600ms '+EASE+' '+d+'ms';el.style.opacity='1';el.style.transform='translateY(0)';ro.unobserve(el)})},{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
 $$('[data-rv]').forEach(function(el){if(!anim||el.getBoundingClientRect().top<innerHeight*0.92)return;el.style.opacity='0';el.style.transform='translateY(18px)';ro.observe(el)});
 var tracks=$$('[data-lmq]').map(function(el){var st={el:el,x:0,v:0.8,t:0.8};var w=el.closest('[data-lmqw]')||el.parentElement;w.addEventListener('mouseenter',function(){st.t=0.15});w.addEventListener('mouseleave',function(){st.t=0.8});return st});
-(function rloop(){if(rca&&anim){rp+=(rpt-rp)*0.12;
- rca.style.transform='translateY('+(-rp*RDA).toFixed(2)+'px)';
- if(rcb)rcb.style.transform='translateY('+(-rp*RDB).toFixed(2)+'px)';
- /* toFixed, ne String() - male hodnoty by se vypsaly exponencialne (4.6e-7)
-    a CSS takove cislo neprijme, takze by opacity zamrzla na predchozi hodnote. */
- if(rtxt)rtxt.style.opacity=Math.max(0,Math.min(1,rp/0.08,(1-rp)/0.12)).toFixed(3)}
- requestAnimationFrame(rloop)})();
 (function loop(){tracks.forEach(function(st){if(!anim){st.el.style.transform='translateX(0)';return}st.v+=(st.t-st.v)*0.04;st.x-=st.v;var h=st.el.scrollWidth/2;if(h>0&&st.x<=-h)st.x+=h;st.el.style.transform='translateX('+st.x+'px)'});requestAnimationFrame(loop)})();
 var panel=$('[data-spanel]'),pimg=$('[data-spimg]'),slist=$('[data-slist]');
 var FR=['6% 30%','22% 55%','38% 25%','50% 60%','62% 35%','78% 65%','94% 40%'],FW=[1,0.75,0.75,0.75,1,1.5,2.5],FC=[],FT;
@@ -499,12 +494,6 @@ $$('[data-anchor]').forEach(function(a){a.addEventListener('click',function(ev){
  var t0=performance.now(),d=Math.min(900,400+Math.abs(y1-y0)*0.2);
  (function step(){var p=Math.min(1,(performance.now()-t0)/d);var e=p<0.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;scrollTo(0,y0+(y1-y0)*e);if(p<1)requestAnimationFrame(step)})()})});
 var qEl=$('[data-quote]'),qWs=null;
-/* Sekce Reference: platno se skaluje transformem, takze CSS sticky uvnitr nedrzi
-   (overeno - pri scale 0,735 se pin rozpadne). Pin proto pohani skript
-   v okennich souradnicich, stejne jako listu a linku Postupu. */
-var rsec=$('[data-screen-label="D5 Reference"]'),rpin=$('[data-rpin]'),
- rca=$('[data-rcol="a"]'),rcb=$('[data-rcol="b"]'),rtxt=$('[data-rtxt]'),
- RSEC=2700,RPIN=900,RDA=2100,RDB=1480,rp=0,rpt=0;
 if(qEl){var words=qEl.textContent.trim().split(/\s+/);qEl.textContent='';qWs=words.map(function(w){var s=document.createElement('span');s.textContent=w;s.style.transition='opacity 160ms linear';qEl.appendChild(s);qEl.appendChild(document.createTextNode(' '));return s})}
 var so=new IntersectionObserver(function(es){es.forEach(function(e){var l=$('[data-nl="'+e.target.id+'"]');if(l)l.style.borderBottomColor=e.isIntersecting?'#E8673C':'transparent'})},{rootMargin:'-40% 0px -55% 0px'});
 ['sluzby','postup','reference','kontakt'].forEach(function(id){var s=document.getElementById(id);if(s)so.observe(s)});
@@ -520,13 +509,8 @@ function onScroll(){var y=scrollY;
   if(vert){track.style.height=run+'%';if(track2)track2.style.height=fin+'%'}else{track.style.width=run+'%';if(track2)track2.style.width=fin+'%'}
   steps.forEach(function(s,i){s.style.color=p>=pos[i]?(i===steps.length-1?'#4A8C5C':'#E8673C'):'#ACAFA8'})}
  drive(line,line2,psec,false);drive(linem,linem2,psecm,true);
- if(rsec&&rpin&&anim){var rr=rsec.getBoundingClientRect(),sc=rr.height/RSEC;
-  if(sc>0){var pinH=RPIN*sc,run=(RSEC-RPIN)*sc,want=Math.max(0,(innerHeight-pinH)/2);
-   var off=Math.max(0,Math.min(want-rr.top,run));
-   rpt=run>0?off/run:0;
-   rpin.style.transform='translateY('+(off/sc).toFixed(2)+'px)'}}
- if(qEl&&qWs){var qq=anim?Math.max(0,Math.min(1,(rp-0.10)/0.45)):1;var n=qWs.length;
-  qWs.forEach(function(s,i){s.style.opacity=Math.max(0.16,Math.min(1,qq*(n+6)-i)).toFixed(3)})}
+ if(qEl&&qWs){var qr=qEl.getBoundingClientRect();var qq=anim?Math.max(0,Math.min(1,(innerHeight*0.85-qr.top)/Math.max(1,innerHeight*0.55))):1;var n=qWs.length;
+  qWs.forEach(function(s,i){s.style.opacity=String(Math.max(0.16,Math.min(1,qq*(n+6)-i)))})}
  if(msRows.length){var vc=innerHeight/2,best=null,bd=1e9;
   msRows.forEach(function(row){var t=$('[data-mst]',row);if(!t)return;var r=t.getBoundingClientRect(),c=r.top+r.height/2;if(c<-innerHeight*0.2||c>innerHeight*1.2)return;var d=Math.abs(c-vc);if(d<bd){bd=d;best=row}});
   if(!anim)best=null;else if(!best)best=msA;   /* posledni otevrena polozka zustava, jinak by se stranka zkratila a scroll uskocil */
@@ -534,9 +518,6 @@ function onScroll(){var y=scrollY;
    msA=best;
    if(best){var w1=$('[data-msw]',best),n1=$('[data-msn]',best);if(w1)w1.style.height=Math.round(innerHeight*0.42)+'px';if(n1)n1.style.color='#E8673C'}}}
 }
-if(!anim&&rsec){rsec.style.height=RPIN+'px';
- if(rca)rca.style.transform='translateY(-1155px)';
- if(rcb)rcb.style.transform='translateY(-814px)'}
 addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);onScroll();
 var glow=$('[data-glow]'),gsec=$('#kontakt');
 if(glow&&gsec){var gi=glow.firstElementChild,gtx=50,gty=42,gcx=50,gcy=42,graf=null;
