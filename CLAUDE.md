@@ -28,8 +28,6 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
 - `/assets/comments.js` – komentáře s piny ve viewerech.
 - `/assets/admin.js` – sekce „Správa" na rozcestníku (jen role admin).
 - `/assets/favicon.svg|png` – favicon (čtvercový symbol na černé).
-- `/.github/workflows/keepalive.yml` – denní ping Supabase REST proti
-  pauzování free tieru (+ udržovací commit 1× za 30 dní).
 - `/design/webkit/` – handoff design systému. **Zdroj pravdy pro veškerý styl.**
 
 ## Pravidla
@@ -57,6 +55,12 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
    co-brand sbaluje jen na název klienta.
 6. **Commity:** krátká česká zpráva bez diakritiky. Push do `main` spouští
    Pages build (~1 min). CDN cache 10 min – po nasazení hard refresh.
+
+> **Supabase je vypnutá.** Původní web na `draft.webkit.studio` na ní stál
+> celý – přihlášení, komentáře i Správa – takže tam teď nic nefunguje.
+> Následující tři kapitoly (brána, komentáře, Správa) popisují, jak to
+> fungovalo, a zůstávají jako záznam. Živá je aplikace v `client/`, popsaná
+> níž a v `client/README.md`.
 
 ## Brána (gate.js)
 
@@ -161,9 +165,9 @@ build, žádné externí knihovny. Jediná externí závislost je Google Fonts
   heslo"), uloží přes `admin_set_user_password` a do zavření stránky
   zůstane v poli (tečky, najetím se odkryje, kliknutím zkopíruje).
   Do repa nikdy. Adminovi smí heslo měnit jen on sám (hlídá SQL funkce).
-- Grants: `anon` má na `projects`/`comments` jen SELECT (RLS vrací prázdno,
-  keepalive dostává 200 `[]`), `authenticated` bez DELETE na `comments`
-  (mazání neexistuje, jen „Vyřešeno").
+- Grants: `anon` má na `projects`/`comments` jen SELECT (RLS vrací prázdno),
+  `authenticated` bez DELETE na `comments` (mazání neexistuje, jen
+  „Vyřešeno").
 - Smazání projektu maže jen záznam; komentáře v databázi i složka v repu
   zůstávají. Změna přístupů se projeví po příštím přihlášení / obnovení
   session uživatele (nový JWT s aktuálním `app_metadata`).
@@ -176,8 +180,10 @@ nasazované přes Webflow Cloud na `webkit.studio/client`. Nahrazuje Supabase
 `client/src/middleware.ts` a `client/src/lib/access.ts`. Podrobnosti jsou
 v `client/README.md` – techstack, adresy, proměnné prostředí, vývoj.
 
-Zbytek tohohle souboru popisuje původní statický web na `draft.webkit.studio`.
-Ten zatím běží dál; přepnutí a vypnutí Supabase je samostatný krok.
+Supabase je vypnutá, takže původní statický web na `draft.webkit.studio` už
+nefunguje. Kapitoly o bráně, komentářích a Správě nad Supabase zůstávají výš
+jako záznam, ne jako popis provozu. Co ještě zbývá: přesměrovat
+`draft.webkit.studio` na nové prostředí a přenést účty klientů.
 
 ### Čtení komentářů bez přihlášení
 
