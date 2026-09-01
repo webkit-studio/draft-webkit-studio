@@ -90,6 +90,8 @@
 #frame .flink:hover{color:#F5F2EC;text-decoration:underline;text-decoration-color:#FFB199;text-underline-offset:4px}
 #frame .txl:hover{text-decoration-line:underline !important;text-decoration-color:#FFB199 !important;text-decoration-thickness:2px !important;text-underline-offset:6px}
 #frame .txl-l:hover{text-decoration-color:#C4491F !important}
+#frame .blogo{display:block;opacity:0.9;transition:opacity 200ms cubic-bezier(0.2,0,0,1)}
+#frame .blogo:hover{opacity:1}
 #frame [data-glow]{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--g,0.62);transition:opacity 700ms cubic-bezier(0.2,0,0,1)}
 #frame [data-glow]>div{position:absolute;inset:-14%;background:radial-gradient(circle 300px at var(--gx,50%) var(--gy,42%),rgba(184,217,190,0.24),rgba(74,140,92,0.14) 30%,rgba(27,58,45,0) 62%);animation:arbGlow 9s cubic-bezier(0.4,0,0.6,1) infinite}
 @keyframes arbGlow{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.06);opacity:1}}
@@ -233,26 +235,28 @@
           <a class="bp" href="#kontakt" data-anchor="#kontakt" style="margin-top:36px;display:flex;align-items:center;justify-content:center;gap:10px;height:52px;background:#C4491F;color:#FFFFFF;text-decoration:none;font-size:18px;font-weight:700;border-radius:6px;cursor:pointer">Poptat zahradu<span style="font-weight:600">→</span></a>
         </section>
 
-        <section data-screen-label="M2 Loga" style="padding:44px 0 32px">
-          <div style="position:relative;overflow:hidden;min-height:400px;display:flex;align-items:center">
+        <section data-screen-label="M2 Loga" style="padding:44px 0">
+          <div style="position:relative;overflow:hidden;min-height:560px;display:flex;flex-direction:column;justify-content:space-between">
             <img src="assets/pro-firmy.webp" alt="Zeleň mezi bytovými domy – trávník, výsadba a kamenná zídka" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:56% 42%;display:block">
             <div style="position:absolute;inset:0;background:rgba(27,58,45,0.74)"></div>
-            <div style="position:relative;z-index:2;padding:44px 20px;width:100%">
+            <div style="position:relative;z-index:2;padding:44px 20px 0">
               <div data-rv="0" style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#B8D9BE">Pro firmy</div>
               <h2 data-rv="60" style="margin:12px 0 0;font-size:30px;font-weight:600;line-height:1.12;letter-spacing:-0.02em;color:#F5F2EC">Developerské projekty, areály, bytové domy</h2>
-              <div data-rv="100" style="margin-top:12px;font-size:15px;line-height:1.6;color:rgba(245,242,236,0.92)">Pro stavební firmy jsme jeden subdodavatel na kompletní údržbu zeleně. Terén, závlahu, výsadbu i trávník řešíte na jednom čísle.</div>
+              <div data-rv="100" style="margin-top:12px;font-size:15px;line-height:1.6;color:rgba(245,242,236,0.92)">Pro stavební firmy jsme jeden subdodavatel na kompletní údržbu zeleně.</div>
               <div data-rv="140" style="margin-top:24px"><a class="txl" href="#kontakt" data-anchor="#kontakt" style="font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#F5F2EC;text-decoration:none;cursor:pointer">Poptat spolupráci&nbsp;<span style="color:#FFB199">→</span></a></div>
             </div>
-          </div>
-          <div data-rv="0" style="margin-top:24px;padding:0 20px;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#2D5A3F">Spolupracujeme s</div>
-          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:22px 20px;margin-top:12px;padding:0 20px">
-              <img src="assets/loga/reinvest.png" alt="Reinvest" loading="lazy" style="height:16px;width:auto;display:block">
-              <img src="assets/loga/auto-opat.svg" alt="Auto Opat" loading="lazy" style="height:24px;width:auto;display:block">
-              <img src="assets/loga/felix.svg" alt="Felix a spol." loading="lazy" style="height:26px;width:auto;display:block">
-              <img src="assets/loga/geosan.svg" alt="Geosan Group" loading="lazy" style="height:26px;width:auto;display:block">
-              <img src="assets/loga/aquasys.svg" alt="Aquasys" loading="lazy" style="height:31px;width:auto;display:block">
-              <img src="assets/loga/hecht.svg" alt="Hecht" loading="lazy" style="height:27px;width:auto;display:block">
+            <div data-rv="0" style="position:relative;z-index:2;margin-top:44px;padding:0 20px 40px">
+              <div style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#B8D9BE">Spolupracujeme s</div>
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:22px 20px;margin-top:14px">
+                <a class="blogo" href="https://www.reinvest.cz/" target="_blank" rel="noopener" aria-label="Reinvest – otevře se v novém okně"><img src="assets/loga/reinvest-w.png" alt="Reinvest" loading="lazy" style="height:16px;width:auto;display:block"></a>
+                <a class="blogo" href="https://www.autoopat.cz/" target="_blank" rel="noopener" aria-label="Auto Opat – otevře se v novém okně"><img src="assets/loga/auto-opat-w.svg" alt="Auto Opat" loading="lazy" style="height:24px;width:auto;display:block"></a>
+                <a class="blogo" href="https://www.akf.cz/" target="_blank" rel="noopener" aria-label="Felix a spol. – otevře se v novém okně"><img src="assets/loga/felix-w.svg" alt="Felix a spol." loading="lazy" style="height:26px;width:auto;display:block"></a>
+                <a class="blogo" href="https://www.geosan-group.cz/" target="_blank" rel="noopener" aria-label="Geosan Group – otevře se v novém okně"><img src="assets/loga/geosan-w.svg" alt="Geosan Group" loading="lazy" style="height:26px;width:auto;display:block"></a>
+                <a class="blogo" href="https://www.aquasys.cz/" target="_blank" rel="noopener" aria-label="Aquasys – otevře se v novém okně"><img src="assets/loga/aquasys-w.svg" alt="Aquasys" loading="lazy" style="height:31px;width:auto;display:block"></a>
+                <a class="blogo" href="https://www.hecht.cz/" target="_blank" rel="noopener" aria-label="Hecht – otevře se v novém okně"><img src="assets/loga/hecht-w.svg" alt="Hecht" loading="lazy" style="height:27px;width:auto;display:block"></a>
+              </div>
             </div>
+          </div>
         </section>
 
         <!-- section_reference -->
@@ -307,7 +311,7 @@
           <div data-rv="120" style="margin-top:32px">
             <div data-faq="" style="border-top:1px solid #B8D9BE">
               <div data-fh="" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 2px;cursor:pointer"><h3 style="margin:0;font-size:17px;font-weight:500;color:#1B3A2D">Kolik zahrada stojí?</h3><span data-fi="" style="font-size:24px;font-weight:300;color:#1B3A2D;display:inline-block;transition:transform 300ms cubic-bezier(0.16,1,0.3,1)">+</span></div>
-              <div data-fb="" style="overflow:hidden;max-height:200px;transition:max-height 400ms cubic-bezier(0.16,1,0.3,1)"><div style="padding:0 2px 20px;font-size:15px;line-height:1.6;color:#5E7368">Ceník neuvádíme – každý pozemek je jiný. Po zaměření dostanete nabídku rozpadlou na etapy, takže přesně vidíte, za co platíte, a část prací můžete odložit na později.</div></div>
+              <div data-fb="" style="overflow:hidden;max-height:200px;transition:max-height 400ms cubic-bezier(0.16,1,0.3,1)"><div style="padding:0 2px 20px;font-size:15px;line-height:1.6;color:#5E7368">Každý pozemek je jiný, a tak ceník nikde neuvádíme. Po zaměření dostanete nabídku rozpadlou na etapy, takže přesně vidíte, za co platíte.</div></div>
             </div>
             <div data-faq="" style="border-top:1px solid #B8D9BE">
               <div data-fh="" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 2px;cursor:pointer"><h3 style="margin:0;font-size:17px;font-weight:500;color:#1B3A2D">Kam jezdíte?</h3><span data-fi="" style="font-size:24px;font-weight:300;color:#1B3A2D;display:inline-block;transition:transform 300ms cubic-bezier(0.16,1,0.3,1)">+</span></div>
