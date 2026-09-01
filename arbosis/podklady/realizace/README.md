@@ -58,3 +58,23 @@ Nepoužito: `IMG_6338.jpeg` – boční průchod mezi domem a plotem, k žádné
 Chybí: fotka z kácení nebo prořezu ve výškách (arborista v postroji, plošina).
 `kaceni.webp` je zatím jen dům se vzrostlými stromy a vznikl z předlohy 1036 × 583,
 tedy z nejmenšího dodaného souboru.
+
+## Pás sekce Pro firmy
+
+| Zdroj | Cíl v `arbosis/v2/assets/` | Kde |
+|---|---|---|
+| IMG_0086.JPG | pro-firmy.webp | celoplošný pás v sekci Pro firmy |
+
+Zpracování stejné jako u řádků služeb, jen ořez 2,77:1 (pás 1440 × 520) a zmenšení
+na 1600 × 578, WebP q74 (190 kB). Fotka leží pod závojem `rgba(27,58,45,0.74)`,
+takže detail není kritický – proto stačí menší rozměr než u hera.
+
+**Fotka je použitá dvakrát.** Stejná předloha (IMG_0086.JPG) je i `travnik.webp`
+v hover pásu služeb. Ze všech dodaných fotek je nejvíc „B2B" – v záběru jsou dvě
+budovy a zeleň mezi nimi, ne soukromá zahrada – a jiná volba nebyla: všechny
+ostatní použitelné fotky už také něco obsluhují a jediná nepoužitá (`IMG_6338.jpeg`)
+je stavební detail na výšku.
+
+Chybí: fotka z developerského projektu, areálu nebo bytového domu – zeleň
+u vícepodlažní budovy, parkoviště, vnitroblok. Dokud nedorazí, je pás postavený
+na fotce rodinné zástavby.
