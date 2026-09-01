@@ -87,6 +87,9 @@
 #frame .inp:focus{border-color:#1B3A2D;outline:2px solid #C4491F;outline-offset:2px}
 #frame .send:active{transform:scale(0.98)}
 #frame .flink{color:#B8D9BE;text-decoration:none;display:inline-block;padding:3px 0;min-height:24px}
+#frame .flink:hover{color:#F5F2EC;text-decoration:underline;text-decoration-color:#FFB199;text-underline-offset:4px}
+#frame .txl:hover{text-decoration-line:underline !important;text-decoration-color:#FFB199 !important;text-decoration-thickness:2px !important;text-underline-offset:6px}
+#frame .txl-l:hover{text-decoration-color:#C4491F !important}
 #frame [data-glow]{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--g,0.62);transition:opacity 700ms cubic-bezier(0.2,0,0,1)}
 #frame [data-glow]>div{position:absolute;inset:-14%;background:radial-gradient(circle 300px at var(--gx,50%) var(--gy,42%),rgba(184,217,190,0.24),rgba(74,140,92,0.14) 30%,rgba(27,58,45,0) 62%);animation:arbGlow 9s cubic-bezier(0.4,0,0.6,1) infinite}
 @keyframes arbGlow{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.06);opacity:1}}
@@ -197,7 +200,7 @@
             </div>
           </div>
           <div style="padding:28px 20px 8px">
-            <a href="#kontakt" data-anchor="#kontakt" style="font-size:20px;font-weight:600;letter-spacing:-0.01em;color:#F5F2EC;text-decoration:none">Chci méně starostí se zahradou&nbsp;<span style="color:#FFB199">→</span></a>
+            <a class="txl" href="#kontakt" data-anchor="#kontakt" style="font-size:20px;font-weight:600;letter-spacing:-0.01em;color:#F5F2EC;text-decoration:none">Chci méně starostí se zahradou&nbsp;<span style="color:#FFB199">→</span></a>
           </div>
         </section>
 
@@ -216,7 +219,7 @@
               <img src="assets/loga/aquasys.svg" alt="Aquasys" loading="lazy" style="height:31px;width:auto;display:block">
               <img src="assets/loga/hecht.svg" alt="Hecht" loading="lazy" style="height:27px;width:auto;display:block">
             </div>
-          <div data-rv="0" style="margin-top:28px;padding:0 20px"><a class="txl" href="#kontakt" data-anchor="#kontakt" style="font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#1B3A2D;text-decoration:none;cursor:pointer">Poptat spolupráci&nbsp;<span style="color:#C4491F">→</span></a></div>
+          <div data-rv="0" style="margin-top:28px;padding:0 20px"><a class="txl txl-l" href="#kontakt" data-anchor="#kontakt" style="font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#1B3A2D;text-decoration:none;cursor:pointer">Poptat spolupráci&nbsp;<span style="color:#C4491F">→</span></a></div>
         </section>
 
         <section data-screen-label="M4 Postup" id="postup" data-psecm="" style="padding:52px 20px;background:#E2E7D9">
@@ -288,8 +291,8 @@
           </div>
           <div data-rv="100" style="margin-top:36px">
             <div style="display:flex;margin-bottom:20px"><img src="assets/tym-1.webp" alt="Tým Arbosis" width="44" height="44" loading="lazy" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:3px solid #F5F2EC;display:block;"><img src="assets/tym-2.webp" alt="" width="44" height="44" loading="lazy" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:3px solid #F5F2EC;display:block;margin-left:-12px"><img src="assets/tym-3.webp" alt="" width="44" height="44" loading="lazy" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:3px solid #F5F2EC;display:block;margin-left:-12px"></div>
-            <a href="mailto:info@arbosis.cz" style="display:inline-block;color:#F5F2EC;font-size:24px;font-weight:600;letter-spacing:-0.01em;text-decoration:none">info@arbosis.cz</a>
-            <div style="margin-top:8px"><a href="tel:+420604481767" style="color:#F5F2EC;font-size:19px;font-weight:500;text-decoration:none">604 481 767</a></div>
+            <a class="txl" href="mailto:info@arbosis.cz" style="display:inline-block;color:#F5F2EC;font-size:24px;font-weight:600;letter-spacing:-0.01em;text-decoration:none">info@arbosis.cz</a>
+            <div style="margin-top:8px"><a class="txl" href="tel:+420604481767" style="color:#F5F2EC;font-size:19px;font-weight:500;text-decoration:none">604 481 767</a></div>
             <div style="margin-top:24px;font-size:13px;line-height:1.9;color:#7BAF7E">Arbosis Plants s.r.o.<br>IČO: 24562866<br>DIČ: CZ24562866<br>Sídlo: Xaverov 29, 285 06 Xaverov</div>
           </div>
         </section>
