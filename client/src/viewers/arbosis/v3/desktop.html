@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Arbosis e-maily v3 – počítač | Webkit.Studio</title>
+<script src="/assets/config.js"></script>
+<script src="/assets/gate.js" data-client="arbosis" data-client-name="Arbosis"></script>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
+<link rel="apple-touch-icon" href="/assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Tokeny design systému Webkit.Studio (/design/webkit/tokens) */
+  :root{--black:#000000;--white:#ffffff;--gray-100:#f4f4f4;--gray-300:#e2e2e2;--gray-500:#6f6f6f;--accent:#ff4d00;--accent-ink:#000000;--focus-ring:var(--accent);--inverse-mut:rgba(255,255,255,.62);--inverse-line:rgba(255,255,255,.24);--font-sans:'Urbanist','Helvetica Neue',Arial,sans-serif;--ease-out:cubic-bezier(0.2,0,0,1);--dur-fast:120ms}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font-sans);background:var(--gray-100);min-height:100vh}
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+  .bar{position:sticky;top:0;z-index:20;background:var(--black);color:var(--white);display:flex;align-items:center;gap:16px;padding:0 20px;height:52px}
+  .bar a.back{color:var(--inverse-mut);text-decoration:none;font-size:13px;font-weight:600;transition:color var(--dur-fast) var(--ease-out)}
+  .bar a.back:hover{color:var(--accent)}
+  .bar a.back:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+  .bar .title{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.02em;margin:0 auto;white-space:nowrap}
+  .bar .title .tx{color:var(--accent)}
+  .bar .title .tc{text-transform:uppercase}
+  .bar .title small{color:var(--inverse-mut);font-weight:500;font-size:12px;margin-left:8px}
+  .bar .who{display:flex;align-items:baseline;gap:12px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .bar .who[hidden]{display:none}
+  .bar .who b{color:var(--white);font-weight:600}
+  .bar .who a{color:var(--inverse-mut);text-decoration:none;transition:color var(--dur-fast) var(--ease-out)}
+  .bar .who a:hover{color:var(--accent)}
+  .bar .who a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+  .stage{display:flex;justify-content:center;padding:28px 20px 56px}
+  .shell{width:1440px}
+  /* Plátno je zamčené na 1440 px, stejně jako u ostatních verzí. */
+  .frame{width:1440px;background:var(--white);border:1px solid var(--gray-300)}
+  /* Náhled si nese vlastní styl, reset prohlížeče se do něj nepromítá –
+     e-mailové tabulky musí počítat s content-box jako v poštovním klientovi. */
+  #frame,#frame *{box-sizing:content-box;margin:revert;padding:revert}
+  @media (max-width:760px){.bar .title small{display:none}.bar .who b{display:none}}
+  @media (max-width:560px){.bar .title .tw,.bar .title .tx{display:none}}
+  @media (max-width:460px){.bar{gap:12px;padding:0 14px}.bar .title{display:none}}
+</style>
+<style>
+/* Styl náhledu z dodaného souboru – selektory scopované pod #frame. */
+#frame{background:#e7e3d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1b3a2d}
+#frame .page{max-width:1300px;margin:0 auto;padding:40px 24px 64px}
+#frame h1{font-size:20px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px}
+#frame .lede{font-size:14px;color:#5e7368;margin:0 0 36px;max-width:70ch;line-height:1.6}
+#frame .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:32px;align-items:start}
+#frame .col > h2{font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a9891;margin:0 0 4px}
+#frame .col > p{font-size:13px;color:#5e7368;margin:0 0 16px;line-height:1.5}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <a class="back" href="/arbosis/">← Zpět</a>
+    <span class="title"><span class="tw">WEBKIT.STUDIO</span><span class="tx" aria-hidden="true">x</span><span class="tc">Arbosis</span><small>e-maily v3.0 · počítač (1440 px)</small></span>
+    <button class="cbtn" type="button" data-comments-toggle hidden><span class="cbtn-t">Komentáře</span><span class="cbtn-n">(0)</span></button>
+    <span class="who" data-auth hidden><b data-auth-name></b><a href="#" data-auth-signout>Odhlásit</a></span>
+  </div>
+  <div class="stage">
+    <div class="shell" id="shell">
+      <div class="frame" id="frame">
+
+<div class="page">
+  <div data-screen-label="E0 Úvod">
+    <h1>Arbosis — náhled obou e-mailů</h1>
+    <p class="lede">Tohle je to, co pošle Resend. Není to screenshot z Webflow — Webflow tuhle hierarchii postavit neumí, protože do těla notifikace pouští jen jednu proměnnou, která vysype všechna pole jako prostý text. Hodnoty níž jsou vzorové.</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="col" data-screen-label="E1 Poptávka pro Šimona">
+      <h2>1 · Poptávka pro Šimona</h2>
+      <p>Chodí na info@arbosis.cz. Odpověď míří rovnou na zákazníka.</p>
+
+<!-- ===== E-MAIL 1 ===== -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f2ec;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+<tr><td align="center">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #d9d2c4;">
+
+    <tr><td style="background-color:#1b3a2d;padding:26px 28px 28px;">
+      <div style="color:#ffb199;font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;">Nová poptávka</div>
+      <div style="color:#f5f2ec;font-size:22px;font-weight:600;line-height:1.3;padding-top:10px;">Někdo právě vyplnil formulář na webu Arbosis.</div>
+    </td></tr>
+
+    <tr><td style="padding:28px 28px 8px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+
+        <tr><td style="padding-bottom:22px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:5px;">Jméno a příjmení</div>
+          <div style="color:#141414;font-size:19px;font-weight:500;line-height:1.35;">Jan Novák</div>
+        </td></tr>
+
+        <tr><td style="padding-bottom:22px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:5px;">E-mail</div>
+          <div style="font-size:19px;font-weight:500;line-height:1.35;"><a href="mailto:jan.novak@example.cz" style="color:#141414;text-decoration:none;border-bottom:1px solid #c9cfc9;">jan.novak@example.cz</a></div>
+        </td></tr>
+
+        <tr><td style="padding-bottom:22px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:5px;">Telefon</div>
+          <div style="font-size:19px;font-weight:500;line-height:1.35;"><a href="tel:+420777123456" style="color:#141414;text-decoration:none;border-bottom:1px solid #c9cfc9;">777 123 456</a></div>
+        </td></tr>
+
+        <tr><td style="padding-bottom:22px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:5px;">Adresa zahrady</div>
+          <div style="color:#141414;font-size:19px;font-weight:500;line-height:1.35;">Zahradní 412<br>250 82 Úvaly</div>
+        </td></tr>
+
+        <tr><td style="padding-bottom:6px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:5px;">S čím vám pomůžeme</div>
+          <div style="color:#141414;font-size:17px;font-weight:400;line-height:1.6;">Máme novostavbu, kolem domu je zatím jen navážka. Potřebovali bychom návrh celé zahrady, srovnat terén a založit trávník. Pozemek je asi 900 m², část ve svahu. Rádi bychom stihli ještě letošní podzim.</div>
+        </td></tr>
+
+      </table>
+    </td></tr>
+
+    <tr><td style="padding:20px 28px 28px;">
+      <a href="https://webflow.com/dashboard/sites/arbosis/forms/submissions?name=Popt%C3%A1vka%20zahrady" style="display:inline-block;background-color:#c4491f;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:6px;">Otevřít všechny poptávky</a>
+    </td></tr>
+
+    <tr><td style="background-color:#f5f2ec;padding:14px 28px;color:#5e7368;font-size:12px;line-height:1.5;border-top:1px solid #d9d2c4;">
+      Arbosis Plants s.r.o. · Xaverov 29, 285 06 Xaverov · info@arbosis.cz<br>
+      Automatická zpráva z webu. Odpověď na ni jde přímo zákazníkovi.
+    </td></tr>
+
+  </table>
+</td></tr>
+</table>
+<!-- ===== /E-MAIL 1 ===== -->
+
+    </div>
+
+    <div class="col" data-screen-label="E2 Potvrzení zákazníkovi">
+      <h2>2 · Potvrzení zákazníkovi</h2>
+      <p>Odchází na adresu z formuláře. Odesílatel Arbosis, odpověď na info@arbosis.cz.</p>
+
+<!-- ===== E-MAIL 2 ===== -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f2ec;padding:24px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+<tr><td align="center">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #d9d2c4;">
+
+    <tr><td style="background-color:#1b3a2d;padding:26px 28px 28px;">
+      <div style="color:#ffb199;font-size:12px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;">Děkujeme</div>
+      <div style="color:#f5f2ec;font-size:22px;font-weight:600;line-height:1.3;padding-top:10px;">Vaši zprávu jsme dostali a už se jí věnujeme.</div>
+    </td></tr>
+
+    <tr><td style="padding:28px 28px 4px;color:#141414;font-size:17px;line-height:1.6;">
+      Dobrý den, Jane,<br><br>
+      ozveme se vám <strong style="font-weight:600;">do 48 hodin</strong> — e-mailem nebo telefonem, ať si upřesníme rozsah. Pak domluvíme termín návštěvy u vás.
+    </td></tr>
+
+    <tr><td style="padding:24px 28px 8px;">
+      <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:14px;border-bottom:1px solid #e4dfd2;">Co jste nám poslali</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding-top:18px;">
+
+        <tr><td style="padding-bottom:18px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:4px;">Adresa zahrady</div>
+          <div style="color:#141414;font-size:16px;line-height:1.4;">Zahradní 412, 250 82 Úvaly</div>
+        </td></tr>
+
+        <tr><td style="padding-bottom:18px;">
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:4px;">Kontakt</div>
+          <div style="color:#141414;font-size:16px;line-height:1.4;">jan.novak@example.cz · 777 123 456</div>
+        </td></tr>
+
+        <tr><td>
+          <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:4px;">S čím pomůžeme</div>
+          <div style="color:#141414;font-size:16px;line-height:1.55;">Máme novostavbu, kolem domu je zatím jen navážka. Potřebovali bychom návrh celé zahrady, srovnat terén a založit trávník. Pozemek je asi 900 m², část ve svahu. Rádi bychom stihli ještě letošní podzim.</div>
+        </td></tr>
+
+      </table>
+    </td></tr>
+
+    <tr><td style="padding:26px 28px 28px;color:#141414;font-size:17px;line-height:1.6;">
+      Kdyby vás mezitím něco napadlo, stačí odpovědět na tuhle zprávu.<br><br>
+      <span style="color:#5e7368;">Arbosis</span>
+    </td></tr>
+
+    <tr><td style="background-color:#f5f2ec;padding:16px 28px;color:#5e7368;font-size:12px;line-height:1.6;border-top:1px solid #d9d2c4;">
+      <strong style="color:#1b3a2d;font-weight:600;">Arbosis Plants s.r.o.</strong><br>
+      Xaverov 29, 285 06 Xaverov · IČ 24562866<br>
+      info@arbosis.cz · 604 481 767 · arbosis.cz
+    </td></tr>
+
+  </table>
+</td></tr>
+</table>
+<!-- ===== /E-MAIL 2 ===== -->
+
+    </div>
+
+  </div>
+</div>
+
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var W=1440;
+      var stage=document.querySelector('.stage');
+      var shell=document.getElementById('shell');
+      var frame=document.getElementById('frame');
+      function fit(){
+        var avail=stage.clientWidth-40;
+        var s=Math.min(1,avail/W);
+        if(s<1){
+          frame.style.transform='scale('+s+')';
+          frame.style.transformOrigin='top left';
+          shell.style.width=(W*s)+'px';
+          shell.style.height=(frame.offsetHeight*s)+'px';
+        }else{
+          frame.style.transform='';
+          shell.style.width=W+'px';
+          shell.style.height='';
+        }
+      }
+      if(window.ResizeObserver) new ResizeObserver(fit).observe(frame);
+      window.addEventListener('resize',fit);
+      window.addEventListener('load',fit);
+      fit();
+    })();
+  </script>
+  <script src="/assets/comments.js" data-project="arbosis" data-version="v3" data-view="desktop"></script>
+</body>
+</html>

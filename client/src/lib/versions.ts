@@ -22,6 +22,7 @@ export interface Version {
 
 export const VERSIONS: Record<string, Version[]> = {
   arbosis: [
+    { id: 'v3', name: 'Emaily', date: '4. 9. 2026', tag: 'v3.0', views: ['desktop'] },
     { id: 'v2', name: 'Design', date: '10. 8. 2026', tag: 'v2.0', views: ['desktop', 'mobile'] },
     { id: 'v1', name: 'Wireframe', date: '4. 8. 2026', tag: 'v1.0', views: ['desktop', 'mobile'] }
   ]
