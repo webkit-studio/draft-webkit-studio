@@ -8,13 +8,17 @@
  * design systemu: strohe, jen datum a stitek, zadne vysvetlujici vety. */
 
 export interface Version {
-  /* slug ve URL, napr. "v2" */
+  /* Slug ve URL, napr. "v2". Poradove cislo zaznamu, nic vic - komentare
+     v databazi se na nej vazou sloupcem version a klientovi uz odesly odkazy,
+     takze se nepremenovava ani kdyz nesedi se stitkem. */
   id: string;
   /* nazev polozky, napr. "Design" nebo "Wireframe" */
   name: string;
   /* datum nahrani ve tvaru, v jakem se zobrazuje */
   date: string;
-  /* stitek verze, napr. "v2.0" */
+  /* Stitek: kolikata verze te polozky to je, ne kolikaty je to radek.
+     Emaily jsou prvni verze emailu, i kdyz v poradi jsou treti - proto
+     id "v3" a tag "v1.0". Stejny stitek nese i lista prohlizece. */
   tag: string;
   /* ktere pohledy existuji */
   views: ('desktop' | 'mobile')[];
@@ -22,9 +26,9 @@ export interface Version {
 
 export const VERSIONS: Record<string, Version[]> = {
   arbosis: [
-    { id: 'v3', name: 'Emaily', date: '4. 9. 2026', tag: 'v3.0', views: ['desktop'] },
-    { id: 'v2', name: 'Design', date: '10. 8. 2026', tag: 'v2.0', views: ['desktop', 'mobile'] },
-    { id: 'v1', name: 'Wireframe', date: '4. 8. 2026', tag: 'v1.0', views: ['desktop', 'mobile'] }
+    { id: 'v3', name: 'Emaily', date: '4. 9. 2026', tag: 'v1.0', views: ['desktop'] },
+    { id: 'v2', name: 'Design', date: '10. 8. 2026', tag: 'v4.0', views: ['desktop', 'mobile'] },
+    { id: 'v1', name: 'Wireframe', date: '4. 8. 2026', tag: 'v2.0', views: ['desktop', 'mobile'] }
   ]
 };
 
