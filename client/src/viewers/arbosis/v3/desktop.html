@@ -48,8 +48,7 @@
 /* Styl náhledu z dodaného souboru – selektory scopované pod #frame. */
 #frame{background:#e7e3d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1b3a2d}
 #frame .page{max-width:1300px;margin:0 auto;padding:40px 24px 64px}
-#frame h1{font-size:20px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px}
-#frame .lede{font-size:14px;color:#5e7368;margin:0 0 36px;max-width:70ch;line-height:1.6}
+#frame h1{font-size:20px;font-weight:600;letter-spacing:-0.01em;margin:0 0 36px}
 #frame .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:32px;align-items:start}
 #frame .col > h2{font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a9891;margin:0 0 4px}
 #frame .col > p{font-size:13px;color:#5e7368;margin:0 0 16px;line-height:1.5}
@@ -69,7 +68,6 @@
 <div class="page">
   <div data-screen-label="E0 Úvod">
     <h1>Arbosis — náhled obou e-mailů</h1>
-    <p class="lede">Tohle je to, co pošle Resend. Není to screenshot z Webflow — Webflow tuhle hierarchii postavit neumí, protože do těla notifikace pouští jen jednu proměnnou, která vysype všechna pole jako prostý text. Hodnoty níž jsou vzorové.</p>
   </div>
 
   <div class="grid">
@@ -154,7 +152,7 @@
       ozveme se vám <strong style="font-weight:600;">do 48 hodin</strong> — e-mailem nebo telefonem, ať si upřesníme rozsah. Pak domluvíme termín návštěvy u vás.
     </td></tr>
 
-    <tr><td style="padding:24px 28px 8px;">
+    <tr><td style="padding:24px 28px 24px;">
       <div style="color:#8a9891;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding-bottom:14px;border-bottom:1px solid #e4dfd2;">Co jste nám poslali</div>
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding-top:18px;">
 
@@ -176,9 +174,11 @@
       </table>
     </td></tr>
 
-    <tr><td style="padding:26px 28px 28px;color:#141414;font-size:17px;line-height:1.6;">
-      Kdyby vás mezitím něco napadlo, stačí odpovědět na tuhle zprávu.<br><br>
-      <span style="color:#5e7368;">Arbosis</span>
+    <tr><td style="padding:0 28px 28px;color:#141414;font-size:17px;line-height:1.6;">
+      <div style="border-top:1px solid #e4dfd2;padding-top:24px;">
+        Kdyby vás mezitím něco napadlo, stačí odpovědět na tuhle zprávu.<br><br>
+        <span style="color:#5e7368;">Arbosis</span>
+      </div>
     </td></tr>
 
     <tr><td style="background-color:#f5f2ec;padding:16px 28px;color:#5e7368;font-size:12px;line-height:1.6;border-top:1px solid #d9d2c4;">

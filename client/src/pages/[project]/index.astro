@@ -86,22 +86,38 @@ if (db) {
                 {v.tag}
               </span>
 
-              <div class="flex gap-2">
-                {v.views.includes('desktop') && (
+              {/* Dva sloupce stejne sirky: pri jedinem pohledu nema smysl nabizet
+                  prepinac Pocitac/Mobil, tlacitko se proto roztahne pres oba.
+                  min-w drzi sirku dvojice Pocitac/Mobil (2x82 + 8 px mezera),
+                  jinak by se osamocene tlacitko smrsklo na svuj text a rady
+                  by si nesedly pod sebe. */}
+              <div class="grid min-w-[172px] grid-cols-2 gap-2">
+                {v.views.length === 1 ? (
                   <a
-                    class="flex h-8 items-center bg-black px-4 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
-                    href={`/client/${project}/${v.id}/desktop`}
+                    class="col-span-2 flex h-8 items-center justify-center bg-black px-4 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+                    href={`/client/${project}/${v.id}/${v.views[0]}`}
                   >
-                    Počítač
+                    Zobrazit
                   </a>
-                )}
-                {v.views.includes('mobile') && (
-                  <a
-                    class="flex h-8 items-center border border-gray-300 px-4 text-small font-semibold transition-colors duration-fast ease-out hover:border-accent hover:text-accent"
-                    href={`/client/${project}/${v.id}/mobile`}
-                  >
-                    Mobil
-                  </a>
+                ) : (
+                  <>
+                    {v.views.includes('desktop') && (
+                      <a
+                        class="flex h-8 items-center justify-center bg-black px-4 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+                        href={`/client/${project}/${v.id}/desktop`}
+                      >
+                        Počítač
+                      </a>
+                    )}
+                    {v.views.includes('mobile') && (
+                      <a
+                        class="flex h-8 items-center justify-center border border-gray-300 px-4 text-small font-semibold transition-colors duration-fast ease-out hover:border-accent hover:text-accent"
+                        href={`/client/${project}/${v.id}/mobile`}
+                      >
+                        Mobil
+                      </a>
+                    )}
+                  </>
                 )}
               </div>
             </div>
