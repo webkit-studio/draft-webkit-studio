@@ -14,13 +14,17 @@ import arbosisV1Mobile from '../viewers/arbosis/v1/mobile.html?raw';
 import arbosisV2Desktop from '../viewers/arbosis/v2/desktop.html?raw';
 import arbosisV2Mobile from '../viewers/arbosis/v2/mobile.html?raw';
 import arbosisV3Desktop from '../viewers/arbosis/v3/desktop.html?raw';
+import webkitV1Desktop from '../viewers/webkit/v1/desktop.html?raw';
+import webkitV1Mobile from '../viewers/webkit/v1/mobile.html?raw';
 
 const VIEWERS: Record<string, string> = {
   'arbosis/v1/desktop': arbosisV1Desktop,
   'arbosis/v1/mobile': arbosisV1Mobile,
   'arbosis/v2/desktop': arbosisV2Desktop,
   'arbosis/v2/mobile': arbosisV2Mobile,
-  'arbosis/v3/desktop': arbosisV3Desktop
+  'arbosis/v3/desktop': arbosisV3Desktop,
+  'webkit/v1/desktop': webkitV1Desktop,
+  'webkit/v1/mobile': webkitV1Mobile
 };
 
 export function hasViewer(project: string, version: string, view: string): boolean {
