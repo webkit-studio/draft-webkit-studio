@@ -18,6 +18,8 @@ import webkitV1Desktop from '../viewers/webkit/v1/desktop.html?raw';
 import webkitV1Mobile from '../viewers/webkit/v1/mobile.html?raw';
 import webkitV2Desktop from '../viewers/webkit/v2/desktop.html?raw';
 import webkitV2Mobile from '../viewers/webkit/v2/mobile.html?raw';
+import webkitV3Desktop from '../viewers/webkit/v3/desktop.html?raw';
+import webkitV3Mobile from '../viewers/webkit/v3/mobile.html?raw';
 
 const VIEWERS: Record<string, string> = {
   'arbosis/v1/desktop': arbosisV1Desktop,
@@ -28,7 +30,9 @@ const VIEWERS: Record<string, string> = {
   'webkit/v1/desktop': webkitV1Desktop,
   'webkit/v1/mobile': webkitV1Mobile,
   'webkit/v2/desktop': webkitV2Desktop,
-  'webkit/v2/mobile': webkitV2Mobile
+  'webkit/v2/mobile': webkitV2Mobile,
+  'webkit/v3/desktop': webkitV3Desktop,
+  'webkit/v3/mobile': webkitV3Mobile
 };
 
 export function hasViewer(project: string, version: string, view: string): boolean {
