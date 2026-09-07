@@ -10,6 +10,11 @@ import { versionsFor } from '../lib/versions';
 const db = getDb();
 const user = Astro.locals.user!;
 
+/* Klient s jediným projektem nemá co vybírat - rovnou do něj. */
+if (user.role !== 'admin' && user.projects.length === 1) {
+  return Astro.redirect(`/client/${user.projects[0]}`, 302);
+}
+
 type P = { slug: string; name: string; subtitle: string | null };
 let projects: P[] = [];
 const open: Record<string, number> = {};
@@ -88,7 +93,7 @@ const jmeno = (user.firstName || '').trim();
 </Layout>
 
 <style>
-  .cards { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .cards { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
   .pc { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
   .pc .cover { height: 150px; }
   .pc .badge { position: absolute; right: 16px; top: 16px; backdrop-filter: blur(6px); background: rgba(16,19,33,.55); }

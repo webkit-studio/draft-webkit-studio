@@ -1,9 +1,10 @@
 ---
-/* Rám stránky projektu: obálka s názvem, štítky a taby sekcí. Sekce jsou
-   adresy (/client/<slug>/ukoly…), ne skryté panely - ať jdou poslat odkazem. */
+/* Rám stránky projektu podle Relume Page Header 5: obálka, avatar přes její
+   spodní hranu, drobečky, název, akce vpravo; pod tím taby sekcí. */
 import Layout from './Layout.astro';
 import { icon } from '../lib/icons';
 import { SECTIONS, gradientFor, type SectionId } from '../lib/portal';
+import type { Version } from '../lib/versions';
 
 interface Props {
   project: { slug: string; name: string; subtitle: string | null };
@@ -11,43 +12,58 @@ interface Props {
   chips?: { label: string; cls?: string }[];
   counts?: Partial<Record<SectionId, number>>;
   demo?: boolean;
+  latest?: Version | null;
 }
-const { project, section, chips = [], counts = {}, demo = false } = Astro.props;
+const { project, section, chips = [], counts = {}, demo = false, latest = null } = Astro.props;
 const g = gradientFor(project.slug);
 const q = demo ? '?demo=1' : '';
+const user = Astro.locals.user!;
+const viceProjektu = user.role === 'admin' || user.projects.length > 1;
 const title = SECTIONS.find((s) => s.id === section)?.label ?? 'Přehled';
+const sekce = SECTIONS.find((s) => s.id === section);
 ---
 
-<Layout title={`${project.name} · ${title} – Webkit.Studio`} clientName={project.name} project={project} section={section}>
-  <header class="phead card rv">
-    <div class="cover" style={`--g1:${g.g1};--g2:${g.g2};--hx:${g.hx}%;--hy:${g.hy}%`}>
-      <span class="mark" aria-hidden="true">{project.name.charAt(0)}</span>
-    </div>
-    <div class="pbody">
-      <div class="ptitle">
-        <a class="back" href="/client/dashboard"><Fragment set:html={icon('back')} /> Projekty</a>
+<Layout title={`${project.name} · ${title} – Webkit.Studio`} clientName={project.name} project={project} section={section} counts={counts}>
+  <header class="phd rv">
+    <div class="cover" style={`--g1:${g.g1};--g2:${g.g2};--hx:${g.hx}%;--hy:${g.hy}%`}></div>
+    <div class="row">
+      <span class="ava" aria-hidden="true">{project.name.charAt(0)}</span>
+      <div class="txt">
+        {viceProjektu && (
+          <nav class="bc" aria-label="Drobečková navigace">
+            <a href="/client/dashboard">Projekty</a><span class="sep">/</span><span>{project.name}</span>
+          </nav>
+        )}
         <h1>{project.name}</h1>
         {project.subtitle && <p class="sub">{project.subtitle}</p>}
         {chips.length > 0 && (
-          <div class="chips">
-            {chips.map((c) => <span class:list={['chip', c.cls]}>{c.label}</span>)}
-          </div>
+          <div class="chips">{chips.map((c) => <span class:list={['chip', c.cls]}>{c.label}</span>)}</div>
         )}
       </div>
-      <nav class="tabs" aria-label="Sekce projektu">
-        {SECTIONS.map((s) => (
-          <a href={`/client/${project.slug}${s.slug ? '/' + s.slug : ''}${q}`} aria-current={s.id === section ? 'page' : undefined}>
-            {s.label}{counts[s.id] ? <span class="n">{counts[s.id]}</span> : null}
-          </a>
-        ))}
-      </nav>
+      {latest && (
+        <div class="acts">
+          {latest.views.includes('desktop') && (
+            <a class="btn" href={`/client/${project.slug}/${latest.id}/desktop`}><Fragment set:html={icon('monitor')} />Otevřít návrh</a>
+          )}
+          {latest.views.includes('mobile') && (
+            <a class="btn light" href={`/client/${project.slug}/${latest.id}/mobile`} aria-label="Otevřít návrh pro mobil"><Fragment set:html={icon('phone')} />Mobil</a>
+          )}
+        </div>
+      )}
     </div>
+    <nav class="ptabs" aria-label="Sekce projektu">
+      {SECTIONS.map((s) => (
+        <a href={`/client/${project.slug}${s.slug ? '/' + s.slug : ''}${q}`} aria-current={s.id === section ? 'page' : undefined}>
+          {s.label}{counts[s.id] ? <span class="n">{counts[s.id]}</span> : null}
+        </a>
+      ))}
+    </nav>
   </header>
 
   {demo && (
     <p class="demo-note">
       <Fragment set:html={icon('sparkle')} /> Ukázková data – jen pro posouzení rozvržení.
-      <a href={`/client/${project.slug}${SECTIONS.find((s) => s.id === section)?.slug ? '/' + SECTIONS.find((s) => s.id === section)!.slug : ''}`}>Vypnout</a>
+      <a href={`/client/${project.slug}${sekce?.slug ? '/' + sekce.slug : ''}`}>Vypnout</a>
     </p>
   )}
 
@@ -55,17 +71,7 @@ const title = SECTIONS.find((s) => s.id === section)?.label ?? 'Přehled';
 </Layout>
 
 <style>
-  .phead { overflow: hidden; margin-bottom: 22px; }
-  .phead .cover { height: 132px; }
-  .pbody { padding: 22px 26px 18px; display: flex; flex-direction: column; gap: 18px; }
-  .back { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--mute); margin-bottom: 10px; }
-  .back :global(svg) { width: 15px; height: 15px; }
-  .back:hover { color: var(--blue); }
-  .phead h1 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.02; font-variation-settings: "opsz" 96, "wght" 400; }
-  .phead .sub { margin-top: 8px; color: var(--ink2); font-size: 16px; max-width: 60ch; }
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-  .demo-note { display: flex; align-items: center; gap: 8px; margin: -8px 0 18px; padding: 10px 14px; border-radius: 12px; background: var(--lilac-soft); color: #3F4AB8; font-size: 13.5px; font-weight: 500; }
+  .demo-note { display: flex; align-items: center; gap: 8px; margin: -6px 0 18px; padding: 10px 14px; border-radius: 12px; background: var(--lilac-soft); color: #3F4AB8; font-size: 13.5px; font-weight: 500; }
   .demo-note :global(svg) { width: 16px; height: 16px; }
   .demo-note a { margin-left: auto; text-decoration: underline; text-underline-offset: 3px; }
-  @media (max-width: 640px) { .phead .cover { height: 96px; } .pbody { padding: 18px 18px 14px; } }
 </style>

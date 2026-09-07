@@ -1,29 +1,33 @@
 ---
-/* Rám aplikace: boční panel vlevo (na telefonu zásuvka), obsah vpravo.
+/* Rám aplikace: horní lišta (Relume Application Shell 1), obsah pod ní.
+   Bez bočního panelu - klient s jedním projektem nemá procházet prázdný
+   sloupec. V projektu nese lišta sekce projektu, jinak jen značku a účet.
    Design systém = nový web Webkit.Studio (src/styles/app.css). */
 import '../styles/app.css';
 import UserMenu from './UserMenu.astro';
 import { icon } from '../lib/icons';
-import { SECTIONS, gradientFor, type SectionId } from '../lib/portal';
+import { SECTIONS, type SectionId } from '../lib/portal';
 
 interface Props {
   title: string;
-  /* název klienta - drží co-brand v titulku okna */
   clientName?: string | null;
-  /* bez panelu (přihlášení, založení databáze) */
   bare?: boolean;
-  /* projekt, ve kterém se uživatel právě pohybuje: panel ukáže jeho sekce */
   project?: { slug: string; name: string } | null;
   section?: SectionId | null;
-  /* zvýrazněná položka hlavní navigace */
   nav?: 'projects' | 'settings' | null;
+  counts?: Partial<Record<SectionId, number>>;
+  narrow?: boolean;
 }
 
-const { title, clientName = null, bare = false, project = null, section = null, nav = null } = Astro.props;
+const { title, bare = false, project = null, section = null, nav = null, counts = {}, narrow = false } = Astro.props;
 const user = Astro.locals.user;
-const aktivniNav = nav ?? (project ? null : Astro.url.pathname.includes('/settings') ? 'settings' : 'projects');
-const g = project ? gradientFor(project.slug) : null;
+/* Odkaz „Projekty" má smysl jen tomu, kdo jich má víc. */
+const viceProjektu = !!user && (user.role === 'admin' || user.projects.length > 1);
+const aktivniNav = nav ?? (Astro.url.pathname.includes('/settings') ? 'settings' : project ? null : 'projects');
 const demo = Astro.url.searchParams.get('demo') === '1' ? '?demo=1' : '';
+const sekce = project
+  ? SECTIONS.map((s) => ({ ...s, href: `/client/${project.slug}${s.slug ? '/' + s.slug : ''}${demo}`, on: section === s.id }))
+  : [];
 ---
 
 <!doctype html>
@@ -51,69 +55,74 @@ const demo = Astro.url.searchParams.get('demo') === '1' ? '?demo=1' : '';
       <main><slot /></main>
     ) : (
       <div class="app">
-        <div class="scrim" data-nav-close></div>
-        <aside class="sb" id="sb">
-          <a class="brand" href="/client/dashboard"><img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio</a>
-
-          <nav aria-label="Hlavní">
-            <a href="/client/dashboard" aria-current={aktivniNav === 'projects' ? 'page' : undefined}>
-              <Fragment set:html={icon('grid')} /> Projekty
+        <header class="tb" id="tb">
+          <div class="in">
+            <a class="brand" href={viceProjektu ? '/client/dashboard' : project ? `/client/${project.slug}` : '/client/dashboard'}>
+              <img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio
             </a>
-          </nav>
 
-          {project && (
-            <div class="proj">
-              <div class="pname">
-                <span class="sq" style={`background:linear-gradient(135deg,${g!.g1},${g!.g2})`}>{project.name.charAt(0)}</span>
-                <span class="truncate">{project.name}</span>
+            {project && (
+              <div class="crumb" aria-hidden="true">
+                <span class="sep">/</span>
+                <b>{project.name}</b>
               </div>
-              <nav aria-label="Sekce projektu">
-                {SECTIONS.map((s) => (
-                  <a
-                    href={`/client/${project.slug}${s.slug ? '/' + s.slug : ''}${demo}`}
-                    aria-current={section === s.id ? 'page' : undefined}
-                  >
-                    <Fragment set:html={icon(s.icon)} /> {s.label}
+            )}
+
+            {project ? (
+              <nav class="links" aria-label="Sekce projektu">
+                {sekce.map((s) => (
+                  <a href={s.href} aria-current={s.on ? 'page' : undefined}>
+                    {s.label}{counts[s.id] ? <span class="n">{counts[s.id]}</span> : null}
                   </a>
                 ))}
               </nav>
+            ) : viceProjektu ? (
+              <nav class="links" aria-label="Hlavní">
+                <a href="/client/dashboard" aria-current={aktivniNav === 'projects' ? 'page' : undefined}>Projekty</a>
+              </nav>
+            ) : null}
+
+            <div class:list={['right', { push: !project && !viceProjektu }]}>
+              {viceProjektu && project && <a class="btn light sm" href="/client/dashboard"><Fragment set:html={icon('grid')} />Projekty</a>}
+              {user && <UserMenu />}
+              <button type="button" class="burger" aria-label="Menu" aria-controls="mnav" aria-expanded="false" data-nav-toggle>
+                <Fragment set:html={icon('menu')} />
+              </button>
             </div>
-          )}
-
-          <div class="spacer"></div>
-
-          <div class="foot">
-            <nav aria-label="Účet">
-              <a href="/client/settings/account" aria-current={aktivniNav === 'settings' ? 'page' : undefined}>
-                <Fragment set:html={icon('settings')} /> Nastavení
-              </a>
-            </nav>
-            {user && <UserMenu />}
           </div>
-        </aside>
 
-        <div class="main-col">
-          <div class="topbar">
-            <a class="brand" href="/client/dashboard"><img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio</a>
-            <button type="button" class="burger" aria-label="Menu" aria-controls="sb" aria-expanded="false" data-nav-toggle>
-              <Fragment set:html={icon('menu')} />
-            </button>
+          <div class="mnav" id="mnav">
+            <div>
+              {project && (
+                <div class="grp">
+                  {sekce.map((s) => (
+                    <a href={s.href} aria-current={s.on ? 'page' : undefined}><Fragment set:html={icon(s.icon)} />{s.label}</a>
+                  ))}
+                </div>
+              )}
+              <div class="grp">
+                {viceProjektu && <a href="/client/dashboard" aria-current={aktivniNav === 'projects' ? 'page' : undefined}><Fragment set:html={icon('grid')} />Projekty</a>}
+                <a href="/client/settings/account" aria-current={aktivniNav === 'settings' ? 'page' : undefined}><Fragment set:html={icon('settings')} />Nastavení</a>
+              </div>
+            </div>
           </div>
-          <main class="main"><div class="page"><slot /></div></main>
-        </div>
+        </header>
+
+        <main class="main"><div class:list={['page', { narrow }]}><slot /></div></main>
       </div>
     )}
 
     <script>
       const btn = document.querySelector('[data-nav-toggle]');
-      const close = () => { document.body.classList.remove('nav-open'); btn?.setAttribute('aria-expanded', 'false'); };
       btn?.addEventListener('click', () => {
         const open = !document.body.classList.contains('nav-open');
         document.body.classList.toggle('nav-open', open);
         btn.setAttribute('aria-expanded', String(open));
       });
-      document.querySelector('[data-nav-close]')?.addEventListener('click', close);
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.body.classList.remove('nav-open'); btn?.setAttribute('aria-expanded', 'false'); } });
+      const tb = document.getElementById('tb');
+      const s = () => tb?.classList.toggle('s', scrollY > 6);
+      addEventListener('scroll', s, { passive: true }); s();
     </script>
   </body>
 </html>

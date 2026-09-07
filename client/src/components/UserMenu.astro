@@ -11,7 +11,7 @@ const pismeno = initial(user);
 
 <div class="um" data-usermenu>
   <button type="button" class="um-t" aria-haspopup="menu" aria-expanded="false" data-usermenu-trigger>
-    <span class="avatar blue" aria-hidden="true">{pismeno}</span>
+    <span class="avatar blue sm2" aria-hidden="true">{pismeno}</span>
     <span class="um-n">
       <span class="um-name">{jmeno}</span>
       <span class="um-mail">{user.email}</span>
@@ -20,6 +20,7 @@ const pismeno = initial(user);
   </button>
 
   <div class="um-p" role="menu" data-usermenu-panel hidden>
+    <div class="who"><b>{jmeno}</b><span>{user.email}</span></div>
     <a href="/client/settings/account" role="menuitem">
       <Fragment set:html={icon('settings')} /> Nastavení
     </a>
@@ -31,22 +32,27 @@ const pismeno = initial(user);
 
 <style>
   .um { position: relative; }
-  .um-t { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 1px solid var(--hair);
-    border-radius: 16px; background: #fff; text-align: left; box-shadow: var(--sh-card); transition: box-shadow .3s var(--ease), transform .3s var(--ease); }
-  .um-t:hover { box-shadow: var(--sh-hover); }
+  .um :global(.avatar.sm2) { width: 34px; height: 34px; font-size: 13px; }
+  .um-p .who { padding: 10px 12px 8px; border-bottom: 1px solid var(--hair); margin-bottom: 4px; }
+  .um-p .who b { display: block; font-size: 14px; }
+  .um-p .who span { font-size: 12px; color: var(--mute); }
+  .um-t { display: flex; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; border: 1px solid transparent;
+    border-radius: 999px; background: transparent; text-align: left; transition: background .2s, border-color .2s; }
+  .um-t:hover, .um-t[aria-expanded="true"] { background: #fff; border-color: var(--hair); }
   .um-n { min-width: 0; flex: 1; display: flex; flex-direction: column; }
   .um-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .um-mail { font-size: 12px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .um-c { color: var(--mute); transform: rotate(180deg); transition: transform .25s var(--ease); }
+  .um-c { color: var(--mute); transition: transform .25s var(--ease); }
   .um-c :global(svg) { width: 16px; height: 16px; }
-  .um-t[aria-expanded="true"] .um-c { transform: rotate(0); }
-  .um-p { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 50; padding: 6px; border-radius: 16px;
+  .um-t[aria-expanded="true"] .um-c { transform: rotate(180deg); }
+  .um-p { position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; z-index: 50; padding: 6px; border-radius: 16px;
     background: #fff; border: 1px solid var(--hair); box-shadow: var(--sh-hover); }
   .um-p a, .um-p button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; background: none;
     border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--ink2); text-align: left; transition: background .2s; }
   .um-p a:hover, .um-p button:hover { background: var(--card2); color: var(--ink); }
   .um-p :global(svg) { width: 17px; height: 17px; }
   .um-p form { margin: 0; }
+  @media (max-width: 900px) { .um-n, .um-c { display: none; } .um-t { padding: 0; border: 0; background: none !important; } }
 </style>
 
 <script>

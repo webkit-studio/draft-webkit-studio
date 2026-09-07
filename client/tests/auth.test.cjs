@@ -93,9 +93,10 @@ const check = (name, ok, detail = '') => {
     await page.fill('input[name=password]', creds['test@webkit.studio'].password);
     await page.click('button[type=submit]');
     await page.waitForTimeout(2000);
-    check('klient přihlášen -> dashboard', page.url().endsWith('/client/dashboard'), page.url());
-    const items = await page.locator('main li').count();
-    check('klient vidí jen 1 projekt', items === 1, `nalezeno ${items}`);
+    /* Klient s jedinym projektem nema co vybirat - dashboard ho posle rovnou do nej. */
+    check('klient přihlášen -> rovnou do svého projektu', page.url().endsWith('/client/arbosis'), page.url());
+    const h1 = await page.locator('main h1').textContent();
+    check('vidí svůj projekt', (h1 || '').includes('Arbosis'), h1 || '');
     /* Kontrola musi bezet az na nastaveni - na dashboardu zadny bocni panel
        neni a test by prosel, i kdyby se tam sprava nabizela. */
     await page.goto(BASE + '/client/settings/account', { waitUntil: 'domcontentloaded' });
@@ -106,7 +107,7 @@ const check = (name, ok, detail = '') => {
 
     /* pokus dostat se do Správy přímo - middleware musí odmítnout */
     await page.goto(BASE + '/client/admin', { waitUntil: 'domcontentloaded' });
-    check('klient se do /client/admin nedostane', page.url().endsWith('/client/dashboard'), page.url());
+    check('klient se do /client/admin nedostane', page.url().endsWith('/client/dashboard') || page.url().endsWith('/client/arbosis'), page.url());
     await page.goto(BASE + '/client/settings/users', { waitUntil: 'domcontentloaded' });
     check('klient se do správy uživatelů nedostane',
       page.url().endsWith('/client/settings/account'), page.url());

@@ -1,10 +1,10 @@
 ---
-/* Průběh projektu: fáze v řadě, hotové plné, aktuální modrá, další ghost.
-   Bez dat se ukážou tři fáze, které má každý projekt, jen bez termínů. */
+/* Průběh projektu. Vodorovně v řadě, nebo svisle (boční sloupec).
+   Hotové plné, aktuální tmavá, další ghost. Bez dat tři fáze bez termínů. */
 import type { Phase } from '../../lib/portal';
 import { icon } from '../../lib/icons';
-interface Props { phases: Phase[] }
-const { phases } = Astro.props;
+interface Props { phases: Phase[]; vertical?: boolean }
+const { phases, vertical = false } = Astro.props;
 const list: Phase[] = phases.length
   ? phases
   : [
@@ -14,7 +14,7 @@ const list: Phase[] = phases.length
     ];
 const empty = phases.length === 0;
 ---
-<ol class:list={['steps', { ghost: empty }]} aria-label="Průběh projektu">
+<ol class:list={['steps', { ghost: empty, v: vertical }]} aria-label="Průběh projektu">
   {list.map((p, i) => (
     <li class={p.state} aria-current={p.state === 'current' ? 'step' : undefined}>
       <span class="dot">{p.state === 'done' ? <Fragment set:html={icon('check')} /> : <span>{i + 1}</span>}</span>
@@ -28,16 +28,17 @@ const empty = phases.length === 0;
 
 <style>
   .steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
-  .steps li { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--card2); border: 1px solid transparent; }
+  .steps.v { grid-auto-flow: row; grid-auto-columns: auto; gap: 6px; }
+  .steps li { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--card2); border: 1px solid transparent; }
   .steps li.done { background: var(--blue-tint); }
   .steps li.current { background: var(--ink); color: #fff; box-shadow: 0 18px 40px -24px rgba(16,19,33,.6); }
-  .steps .dot { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; flex: none; background: #fff; color: var(--ink2); font-size: 13px; font-weight: 700; }
-  .steps .dot :global(svg) { width: 18px; height: 18px; }
+  .steps .dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; flex: none; background: #fff; color: var(--ink2); font-size: 13px; font-weight: 700; }
+  .steps .dot :global(svg) { width: 17px; height: 17px; }
   .steps li.done .dot { background: var(--blue); color: #fff; }
   .steps li.current .dot { background: var(--lilac); color: var(--ink); }
   .steps .txt { display: flex; flex-direction: column; min-width: 0; }
-  .steps .txt b { font-weight: 600; font-size: 15px; }
-  .steps .txt small { font-size: 12.5px; color: var(--mute); font-family: var(--mono); }
+  .steps .txt b { font-weight: 600; font-size: 14.5px; }
+  .steps .txt small { font-size: 12px; color: var(--mute); font-family: var(--mono); }
   .steps li.current .txt small { color: rgba(255,255,255,.65); }
   .steps.ghost li { border-color: var(--hair); background: transparent; }
   .steps.ghost .dot { background: var(--bg); color: var(--mute); }

@@ -111,7 +111,8 @@ async function login(ctx, email) {
        umre behem POSTu, prohlizec skonci na chybove strance u /client/api/login
        a ta podminku "neni login" splni - prihlaseni pritom neprobehlo a vsechny
        dalsi kontroly pak hlasi 401, jako by selhalo opravneni. */
-    if (page.url().includes('/client/dashboard')) return page;
+    /* Klient s jedinym projektem konci rovnou v nem, ne na dashboardu. */
+    if (page.url().includes('/client/dashboard') || /\/client\/[a-z0-9-]+$/.test(page.url())) return page;
     console.log(`… přihlášení ${email} neprošlo, zkouším znovu (${pokus}/3)`);
   }
   throw new Error(`Nepodařilo se přihlásit ${email}`);

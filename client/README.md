@@ -27,11 +27,17 @@ Ve Webflow Cloud → Environment variables. Do repa nikdy.
 - `src/middleware.ts` – jediné místo, kde se rozhoduje o přístupu
 - `src/lib/access.ts` – oprávnění (nahrazuje RLS, které bylo v Supabase)
 - `src/lib/viewer.ts` – prohlížeče návrhů; plátno zůstává byte za bytem stejné
-- `src/components/Layout.astro` – rám aplikace: boční panel (na telefonu
-  zásuvka), v projektu i jeho sekce
+- `src/components/Layout.astro` – rám aplikace podle Relume Application
+  Shell 1: jen horní lišta (v projektu nese jeho sekce, „Projekty" jen tomu,
+  kdo jich má víc), na telefonu rozbalovací menu. Klient s jediným projektem
+  se z dashboardu posílá rovnou do něj.
 - `src/pages/dashboard.astro` – karty projektů
-- `src/pages/[project]/index.astro` – Přehled projektu (Průběh, Návrhy, Úkoly,
-  Dokumenty, Poznámky); `[project]/[section].astro` – jednotlivé sekce
+- `src/components/ProjectShell.astro` – hlavička projektu podle Relume Page
+  Header 5 (obálka, avatar, drobečky, akce), taby sekcí jen na telefonu
+- `src/pages/[project]/index.astro` – Přehled projektu; hustota podle obsahu:
+  hlavní sloupec návrhy (+ úkoly, poznámky když jsou), boční Průběh
+  (+ dokumenty) a jedno shrnutí prázdných sekcí místo prázdných karet;
+  `[project]/[section].astro` – jednotlivé sekce
 - `src/lib/portal.ts` – datový model portálu 1:1 podle Notionu (stavy úkolů,
   typy dokumentů, fáze). Zatím bez dat; `?demo=1` ukáže ukázková data, aby
   šel posoudit layout. Sem se jednou napojí synchronizace s Notionem.

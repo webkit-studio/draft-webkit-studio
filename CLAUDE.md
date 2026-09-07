@@ -53,6 +53,11 @@ Jak to vypadalo do přepnutí:
    Starý monochrom + oranžová `#ff4d00` v `/design/webkit/` je archiv, ne
    zdroj pravdy. Nic nedopočítávat od oka - nové prvky skládat z tříd
    v app.css (`.card`, `.btn`, `.chip`, `.tabs`, `.row`, `.empty`).
+   Struktura obrazovek podle Relume aplikačních komponent (Application
+   Shell 1 = horní lišta bez bočního panelu, Page Header 5, Stacked List,
+   Grid List), vzhled z app.css. Hustota se řídí obsahem: klient s jedním
+   projektem nesmí vidět prázdný rám velké aplikace - prázdné sekce jdou do
+   jednoho shrnutí, ne do velkých prázdných karet.
 4. **Texty: stroze.** Česky, en dash „–", žádná emoji. Žádné pomocné,
    vysvětlující ani zdvořilostní věty („Návrh si prohlédněte…", „Heslo jste
    dostali…" apod.) – působí jako AI slop. Placeholdery v [hranatých

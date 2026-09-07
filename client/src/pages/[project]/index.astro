@@ -1,7 +1,8 @@
 ---
-/* Přehled projektu: průběh, poslední návrh, otevřené úkoly, dokumenty
-   a poznámky. Návrhy tu zůstávají i s odkazy do prohlížeče - je to
-   nejčastější cíl návštěvy. */
+/* Přehled projektu. Hustota se řídí obsahem: hlavní sloupec nese návrhy
+   (vždy) a úkoly (když nějaké jsou), boční sloupec průběh a to, co má
+   obsah. Prázdné sekce se neroztahují do velkých karet - jsou v jednom
+   krátkém shrnutí s odkazem. */
 import ProjectShell from '../../components/ProjectShell.astro';
 import PhaseSteps from '../../components/portal/PhaseSteps.astro';
 import TaskRows from '../../components/portal/TaskRows.astro';
@@ -9,7 +10,7 @@ import DocRows from '../../components/portal/DocRows.astro';
 import NoteCards from '../../components/portal/NoteCards.astro';
 import VersionRows from '../../components/portal/VersionRows.astro';
 import { icon } from '../../lib/icons';
-import { loadPortal, OPEN_STATUSES } from '../../lib/portal';
+import { loadPortal, OPEN_STATUSES, SECTIONS } from '../../lib/portal';
 import { loadProjectPage } from '../../lib/project';
 
 export const prerender = false;
@@ -20,6 +21,9 @@ const { row, versions, counts, openComments, demo } = page;
 const portal = loadPortal(row.slug, demo);
 const q = demo ? '?demo=1' : '';
 
+const latest = versions[0] ?? null;
+const rest = versions.slice(1);
+const cl = latest ? counts[latest.id] : undefined;
 const otevrene = portal.tasks.filter((t) => OPEN_STATUSES.includes(t.status));
 const faze = portal.phases.find((p) => p.state === 'current');
 const chips = [
@@ -32,51 +36,108 @@ const countsTab = {
   dokumenty: portal.docs.length,
   poznamky: portal.notes.length
 };
+
+/* co je prázdné, jde do jednoho shrnutí místo velkých karet */
+const prazdne = [
+  ['ukoly', portal.tasks.length],
+  ['dokumenty', portal.docs.length],
+  ['poznamky', portal.notes.length]
+].filter(([, n]) => n === 0).map(([id]) => SECTIONS.find((s) => s.id === id)!);
 ---
 
-<ProjectShell project={row} section="overview" chips={chips} counts={countsTab} demo={demo}>
-  <section class="card pad rv d1">
-    <div class="chead"><h3>Průběh</h3></div>
-    <PhaseSteps phases={portal.phases} />
-  </section>
+<ProjectShell project={row} section="overview" chips={chips} counts={countsTab} demo={demo} latest={latest}>
+  <div class="cols">
+    <div class="stack">
+      <section class="card pad rv d1">
+        <div class="chead">
+          <h3>Návrhy</h3>
+          {versions.length > 1 && <a class="more" href={`/client/${row.slug}/navrhy${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>}
+        </div>
+        {latest ? (
+          <div class="latest" data-version={latest.id}>
+            <div class="prev">
+              <span class="lbl"><span class="chip mono">{latest.tag}</span>{cl && cl.open > 0 && <span class="chip">{cl.open} k vyřešení</span>}</span>
+              <span class="big">{latest.name}</span>
+            </div>
+            <div class="body">
+              <div>
+                <h4>{latest.name} {latest.tag}</h4>
+                <small>{latest.date}{cl && cl.total > 0 ? ` · ${cl.total} ${cl.total === 1 ? 'komentář' : cl.total < 5 ? 'komentáře' : 'komentářů'}` : ''}</small>
+              </div>
+              <span class="views">
+                {latest.views.includes('desktop') && <a class="btn dark sm" href={`/client/${row.slug}/${latest.id}/desktop`}><Fragment set:html={icon('monitor')} />Počítač</a>}
+                {latest.views.includes('mobile') && <a class="btn light sm" href={`/client/${row.slug}/${latest.id}/mobile`}><Fragment set:html={icon('phone')} />Mobil</a>}
+              </span>
+            </div>
+            {rest.length > 0 && (
+              <div class="older">
+                <p class="kicker">Starší verze</p>
+                <VersionRows project={row.slug} versions={rest} counts={counts} limit={3} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <VersionRows project={row.slug} versions={[]} counts={counts} />
+        )}
+      </section>
 
-  <div class="grid2">
-    <section class="card pad rv d2">
-      <div class="chead">
-        <h3>Návrhy</h3>
-        <a class="more" href={`/client/${row.slug}/navrhy${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
-      </div>
-      <VersionRows project={row.slug} versions={versions} counts={counts} limit={3} />
-    </section>
+      {portal.tasks.length > 0 && (
+        <section class="card pad rv d2">
+          <div class="chead">
+            <h3>Úkoly</h3>
+            <a class="more" href={`/client/${row.slug}/ukoly${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
+          </div>
+          <TaskRows tasks={otevrene} limit={5} compact />
+        </section>
+      )}
 
-    <section class="card pad rv d3">
-      <div class="chead">
-        <h3>Úkoly</h3>
-        <a class="more" href={`/client/${row.slug}/ukoly${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
-      </div>
-      <TaskRows tasks={otevrene} limit={4} compact />
-    </section>
+      {portal.notes.length > 0 && (
+        <section class="card pad rv d3">
+          <div class="chead">
+            <h3>Poznámky</h3>
+            <a class="more" href={`/client/${row.slug}/poznamky${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
+          </div>
+          <NoteCards notes={portal.notes} limit={2} />
+        </section>
+      )}
+    </div>
 
-    <section class="card pad rv d4">
-      <div class="chead">
-        <h3>Dokumenty</h3>
-        <a class="more" href={`/client/${row.slug}/dokumenty${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
-      </div>
-      <DocRows docs={portal.docs} limit={3} />
-    </section>
+    <aside class="stack">
+      <section class="card pad rv d2">
+        <div class="chead"><h3>Průběh</h3></div>
+        <PhaseSteps phases={portal.phases} vertical />
+      </section>
 
-    <section class="card pad rv d5">
-      <div class="chead">
-        <h3>Poznámky</h3>
-        <a class="more" href={`/client/${row.slug}/poznamky${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
-      </div>
-      <NoteCards notes={portal.notes} limit={2} />
-    </section>
+      {portal.docs.length > 0 && (
+        <section class="card pad rv d3">
+          <div class="chead">
+            <h3>Dokumenty</h3>
+            <a class="more" href={`/client/${row.slug}/dokumenty${q}`}>Všechny <Fragment set:html={icon('arrow')} /></a>
+          </div>
+          <DocRows docs={portal.docs} limit={3} />
+        </section>
+      )}
+
+      {prazdne.length > 0 && (
+        <section class="card pad sum rv d4">
+          <div class="chead"><h3>Zatím prázdné</h3></div>
+          <div class="rows">
+            {prazdne.map((s) => (
+              <a class="row link" href={`/client/${row.slug}/${s.slug}${q}`}>
+                <span class="ico" set:html={icon(s.icon)} />
+                <span class="t"><b>{s.label}</b></span>
+                <span class="go" set:html={icon('arrow')} />
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </aside>
   </div>
 </ProjectShell>
 
 <style>
-  .grid2 { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; margin-top: 18px; }
-  .grid2 .more :global(svg) { width: 14px; height: 14px; }
-  @media (max-width: 960px) { .grid2 { grid-template-columns: 1fr; } }
+  .older { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hair); }
+  .older .kicker { margin-bottom: 4px; }
+  .chead .more :global(svg) { width: 14px; height: 14px; }
 </style>

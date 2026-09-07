@@ -35,7 +35,7 @@ async function login(browser, email) {
     const pc = await page.locator('a[href="/client/arbosis/v2/desktop"]').count();
     const mob = await page.locator('a[href="/client/arbosis/v2/mobile"]').count();
     check('odkazy Počítač i Mobil', pc === 1 && mob === 1, `pc=${pc} mobil=${mob}`);
-    const cobrand = await page.locator('header').textContent();
+    const cobrand = await page.locator('header.phd').textContent();
     check('co-brand ukazuje klienta', (cobrand || '').includes('Arbosis'), (cobrand || '').trim().slice(0, 50));
 
     const cizi = await page.goto(BASE + '/client/anse', { waitUntil: 'domcontentloaded' });
