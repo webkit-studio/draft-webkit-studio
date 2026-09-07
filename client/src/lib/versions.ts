@@ -26,6 +26,7 @@ export interface Version {
 
 export const VERSIONS: Record<string, Version[]> = {
   webkit: [
+    { id: 'v4', name: 'Web · příběhová verze', date: '7. 9. 2026', tag: 'v6.0', views: ['desktop', 'mobile'] },
     { id: 'v3', name: 'Web', date: '7. 9. 2026', tag: 'v5.0', views: ['desktop', 'mobile'] },
     { id: 'v2', name: 'Web', date: '7. 9. 2026', tag: 'v4.0', views: ['desktop', 'mobile'] },
     { id: 'v1', name: 'Web', date: '6. 9. 2026', tag: 'v3.0', views: ['desktop', 'mobile'] }
