@@ -1,0 +1,90 @@
+---
+/* Sekce projektu: navrhy | ukoly | dokumenty | poznamky.
+   Cokoli jiného (např. /v2 bez pohledu) je 404. */
+import ProjectShell from '../../components/ProjectShell.astro';
+import TaskRows from '../../components/portal/TaskRows.astro';
+import DocRows from '../../components/portal/DocRows.astro';
+import NoteCards from '../../components/portal/NoteCards.astro';
+import VersionRows from '../../components/portal/VersionRows.astro';
+import { icon } from '../../lib/icons';
+import { loadPortal, OPEN_STATUSES, SECTIONS, type SectionId } from '../../lib/portal';
+import { loadProjectPage } from '../../lib/project';
+
+export const prerender = false;
+
+const sec = SECTIONS.find((s) => s.slug && s.slug === Astro.params.section);
+if (!sec) {
+  return new Response('Stránka neexistuje.', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }
+  });
+}
+
+const page = await loadProjectPage(Astro);
+if (page instanceof Response) return page;
+const { row, versions, counts, demo } = page;
+const portal = loadPortal(row.slug, demo);
+const section = sec.id as SectionId;
+
+const otevrene = portal.tasks.filter((t) => OPEN_STATUSES.includes(t.status));
+const hotove = portal.tasks.filter((t) => !OPEN_STATUSES.includes(t.status));
+const countsTab = {
+  navrhy: versions.length,
+  ukoly: otevrene.length,
+  dokumenty: portal.docs.length,
+  poznamky: portal.notes.length
+};
+---
+
+<ProjectShell project={row} section={section} counts={countsTab} demo={demo}>
+  {section === 'navrhy' && (
+    <section class="card pad rv d1">
+      <div class="chead">
+        <h3>Návrhy</h3>
+        <span class="kicker">{versions.length} {versions.length === 1 ? 'verze' : 'verzí'}</span>
+      </div>
+      <VersionRows project={row.slug} versions={versions} counts={counts} />
+    </section>
+  )}
+
+  {section === 'ukoly' && (
+    <>
+      <section class="card pad rv d1">
+        <div class="chead">
+          <h3>Otevřené</h3>
+          <span class="kicker">{otevrene.length}</span>
+        </div>
+        <TaskRows tasks={otevrene} />
+      </section>
+      {hotove.length > 0 && (
+        <section class="card pad rv d2" style="margin-top:18px">
+          <div class="chead">
+            <h3>Hotové</h3>
+            <span class="kicker">{hotove.length}</span>
+          </div>
+          <TaskRows tasks={hotove} />
+        </section>
+      )}
+    </>
+  )}
+
+  {section === 'dokumenty' && (
+    <section class="card pad rv d1">
+      <div class="chead">
+        <h3>Dokumenty</h3>
+        <span class="kicker">{portal.docs.length}</span>
+      </div>
+      <DocRows docs={portal.docs} />
+    </section>
+  )}
+
+  {section === 'poznamky' && (
+    <section class="card pad rv d1">
+      <div class="chead">
+        <h3>Poznámky</h3>
+        <span class="kicker">{portal.notes.length}</span>
+      </div>
+      <NoteCards notes={portal.notes} />
+    </section>
+  )}
+</ProjectShell>

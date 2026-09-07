@@ -1,0 +1,10 @@
+---
+import { icon, type IconName } from '../../lib/icons';
+interface Props { ico: IconName; title: string; hint?: string }
+const { ico, title, hint } = Astro.props;
+---
+<div class="empty">
+  <span class="ico" set:html={icon(ico)} />
+  <b>{title}</b>
+  {hint && <span>{hint}</span>}
+</div>

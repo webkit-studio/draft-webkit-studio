@@ -1,0 +1,35 @@
+---
+import type { Doc } from '../../lib/portal';
+import { DOC_CHIP, formatKc } from '../../lib/portal';
+import { icon } from '../../lib/icons';
+import Empty from './Empty.astro';
+interface Props { docs: Doc[]; limit?: number }
+const { docs, limit } = Astro.props;
+const list = limit ? docs.slice(0, limit) : docs;
+---
+{list.length === 0 ? (
+  <Empty ico="file" title="Zatím žádné dokumenty" />
+) : (
+  <div class="rows">
+    {list.map((d) => (
+      <div class="row">
+        <span class="fi" aria-hidden="true" set:html={icon('file')} />
+        <span class="t">
+          <b>{d.name}</b>
+          <small>
+            {d.created}{d.amount ? ` · ${formatKc(d.amount)}` : ''}{d.due ? ` · splatnost ${d.due}` : ''}{d.note ? ` · ${d.note}` : ''}
+          </small>
+        </span>
+        <span class="meta">
+          <span class:list={['chip', DOC_CHIP[d.type]]}>{d.type}</span>
+          <a class="btn light icon sm" href="#" aria-label={`Stáhnout ${d.name}`} set:html={icon('download')} />
+        </span>
+      </div>
+    ))}
+  </div>
+)}
+
+<style>
+  .fi { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--card2); color: var(--ink2); flex: none; }
+  .fi :global(svg) { width: 18px; height: 18px; }
+</style>

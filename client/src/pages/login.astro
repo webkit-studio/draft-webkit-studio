@@ -9,51 +9,56 @@ const failed = Astro.url.searchParams.get('e') === '1';
 ---
 
 <Layout title="Přihlášení – Webkit.Studio" bare={true}>
-  <div class="flex min-h-screen items-center justify-center p-5">
-    <div class="w-full max-w-[360px]">
-      <div class="mb-8 flex items-center gap-3">
-        <span class="text-[13px] font-bold tracking-[0.02em]">WEBKIT.STUDIO</span>
+  <div class="lg">
+    <aside class="lg-art cover" style="--g1:#1D2BE8;--g2:#8A96FF" aria-hidden="true">
+      <div class="lg-brand"><img src="/client/assets/symbol-white.png" alt="" />Webkit.Studio</div>
+      <p class="lg-claim">Návrhy, úkoly a dokumenty vašeho projektu na jednom místě.</p>
+    </aside>
+
+    <div class="lg-form">
+      <div class="lg-box rv">
+        <a class="lg-mini" href="/client/login"><img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio</a>
+        <h1>Přihlášení</h1>
+
+        {!dbReady ? (
+          <p class="note">Databáze zatím není připojená. Prostředí běží, ale přihlásit se nelze.</p>
+        ) : (
+          <form method="post" action="/client/api/login" class="f">
+            <input type="hidden" name="next" value={next} />
+            <label class="field">
+              <span>E-mail</span>
+              <input class="input" type="email" name="email" autocomplete="username" required />
+            </label>
+            <label class="field">
+              <span>Heslo</span>
+              <input class="input" type="password" name="password" autocomplete="current-password" required />
+            </label>
+            {failed && <p class="note err" role="alert">Nesprávný e-mail nebo heslo.</p>}
+            <button type="submit" class="btn full">Přihlásit</button>
+          </form>
+        )}
       </div>
-
-      {!dbReady ? (
-        <p class="border border-gray-300 p-4 text-small">
-          Databáze zatím není připojená. Prostředí běží, ale přihlásit se nelze.
-        </p>
-      ) : (
-        <form method="post" action="/client/api/login" class="flex flex-col gap-2">
-          <input type="hidden" name="next" value={next} />
-
-          <input
-            class="h-12 w-full border border-gray-300 bg-white px-4 text-base text-black outline-none placeholder:text-gray-500"
-            type="email"
-            name="email"
-            autocomplete="username"
-            placeholder="E-mail"
-            required
-            aria-label="E-mail"
-          />
-          <input
-            class="h-12 w-full border border-gray-300 bg-white px-4 text-base text-black outline-none placeholder:text-gray-500"
-            type="password"
-            name="password"
-            autocomplete="current-password"
-            placeholder="Heslo"
-            required
-            aria-label="Heslo"
-          />
-
-          {failed && (
-            <p class="mt-1 text-small text-accent" role="alert">Nesprávný e-mail nebo heslo.</p>
-          )}
-
-          <button
-            type="submit"
-            class="mt-2 h-12 w-full bg-black text-base font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
-          >
-            Přihlásit
-          </button>
-        </form>
-      )}
     </div>
   </div>
 </Layout>
+
+<style>
+  .lg { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); min-height: 100svh; }
+  .lg-art { display: flex; flex-direction: column; justify-content: space-between; padding: 36px 40px; color: #fff; margin: 14px 0 14px 14px; border-radius: var(--r-xl); }
+  .lg-brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-variation-settings: "opsz" 24, "wght" 600; font-size: 18px; position: relative; z-index: 1; }
+  .lg-brand img { width: 26px; height: 26px; }
+  .lg-claim { position: relative; z-index: 1; font-family: var(--display); font-size: clamp(28px, 3vw, 42px); line-height: 1.08; letter-spacing: -.03em; font-variation-settings: "opsz" 96, "wght" 300; max-width: 16ch; }
+  .lg-form { display: grid; place-items: center; padding: 32px 24px; }
+  .lg-box { width: 100%; max-width: 380px; }
+  .lg-mini { display: none; align-items: center; gap: 9px; color: var(--blue); font-family: var(--display); font-variation-settings: "opsz" 24, "wght" 600; font-size: 16px; margin-bottom: 28px; }
+  .lg-mini img { width: 24px; height: 24px; }
+  .lg-box h1 { font-size: 36px; font-variation-settings: "opsz" 96, "wght" 400; margin-bottom: 26px; }
+  .f { display: flex; flex-direction: column; gap: 14px; }
+  .f .btn { margin-top: 6px; height: 48px; }
+  @media (max-width: 860px) {
+    .lg { grid-template-columns: 1fr; }
+    .lg-art { display: none; }
+    .lg-mini { display: inline-flex; }
+    .lg-form { align-items: start; padding-top: 64px; }
+  }
+</style>

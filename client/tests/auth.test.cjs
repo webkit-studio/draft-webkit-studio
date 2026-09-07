@@ -3,7 +3,7 @@ const { chromium } = require('playwright-core');
 const fs = require('fs');
 
 const BASE = 'http://127.0.0.1:8788';
-const OUT = '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/';
+const OUT = (process.env.WK_OUT || '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/');
 
 /* hesla z creds.txt vygenerovaného seedem */
 const creds = {};

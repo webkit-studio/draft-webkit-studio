@@ -6,8 +6,9 @@ Nahrazuje původní statické prostředí postavené na Supabase.
 ## Techstack
 
 - Astro 7 (`output: 'server'`, `base: '/client'`), adaptér `@astrojs/cloudflare`
-- Tailwind v3 přes PostCSS, preset `@relume_io/relume-tailwind`, tokeny
-  z `/design/webkit/`
+- Tailwind v3 přes PostCSS jen jako utility vrstva; vzhled drží
+  `src/styles/app.css` (design systém nového webu: modrá `#1D2BE8`, lila,
+  Bricolage Grotesque + Instrument Sans + IBM Plex Mono)
 - D1 (SQLite), binding `DB`
 - Hesla PBKDF2-SHA256 přes WebCrypto (bcrypt na Workers není)
 - Session: neprůhledný token v cookie, v databázi jen jeho SHA-256
@@ -26,7 +27,17 @@ Ve Webflow Cloud → Environment variables. Do repa nikdy.
 - `src/middleware.ts` – jediné místo, kde se rozhoduje o přístupu
 - `src/lib/access.ts` – oprávnění (nahrazuje RLS, které bylo v Supabase)
 - `src/lib/viewer.ts` – prohlížeče návrhů; plátno zůstává byte za bytem stejné
+- `src/components/Layout.astro` – rám aplikace: boční panel (na telefonu
+  zásuvka), v projektu i jeho sekce
+- `src/pages/dashboard.astro` – karty projektů
+- `src/pages/[project]/index.astro` – Přehled projektu (Průběh, Návrhy, Úkoly,
+  Dokumenty, Poznámky); `[project]/[section].astro` – jednotlivé sekce
+- `src/lib/portal.ts` – datový model portálu 1:1 podle Notionu (stavy úkolů,
+  typy dokumentů, fáze). Zatím bez dat; `?demo=1` ukáže ukázková data, aby
+  šel posoudit layout. Sem se jednou napojí synchronizace s Notionem.
 - `src/pages/settings/` – Můj účet, Správa projektů, Správa uživatelů
+- `public/assets/viewer.css` – lišta prohlížeče a komentáře v nové paletě
+  (vkládá viewer.ts za styly prohlížeče; plátna se netýká)
 - `public/assets/comments.js` – komentáře s piny (přenesené z původního webu)
 
 ## Adresy
@@ -37,7 +48,8 @@ Ve Webflow Cloud → Environment variables. Do repa nikdy.
 | `/client/login` | veřejná |
 | `/client/setup` | veřejná, ale jen dokud je databáze prázdná |
 | `/client/dashboard` | přihlášený |
-| `/client/<projekt>` | kdo má přístup k projektu |
+| `/client/<projekt>` | kdo má přístup k projektu (Přehled) |
+| `/client/<projekt>/navrhy`, `/ukoly`, `/dokumenty`, `/poznamky` | kdo má přístup k projektu |
 | `/client/<projekt>/<verze>/<desktop\|mobile>` | kdo má přístup k projektu |
 | `/client/settings/account` | přihlášený |
 | `/client/settings/projects`, `/client/settings/users` | admin |
@@ -104,6 +116,10 @@ npm test               # celá sada Playwright testů
 Lokální proměnné patří do `client/.dev.vars` (je v `.gitignore`). Build si
 soubor kopíruje do `dist/server/.dev.vars` – wrangler čte tuhle kopii, takže
 změna v `client/.dev.vars` se projeví až po `npm run build`.
+
+Testy čtou hesla a `serve.sh` z adresáře v proměnné `WK_OUT` (s lomítkem na
+konci); bez ní míří na původní scratchpad. `serve.sh` restartuje wrangler dev
+a spustí migraci nad lokální D1.
 
 `npm test` běží přes `scripts/test.mjs`. Není to prostý řetěz příkazů schválně:
 `wrangler dev` si občas sám shodí ProxyController prázdnou chybou a server

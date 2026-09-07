@@ -1,0 +1,51 @@
+---
+/* Verze návrhů: název, štítek, datum, komentáře a vstup do prohlížeče.
+   Odkazy /client/<projekt>/<verze>/<pohled> drží i testy. */
+import type { Version } from '../../lib/versions';
+import { icon } from '../../lib/icons';
+import Empty from './Empty.astro';
+interface Props {
+  project: string;
+  versions: Version[];
+  counts: Record<string, { open: number; total: number }>;
+  limit?: number;
+}
+const { project, versions, counts, limit } = Astro.props;
+const list = limit ? versions.slice(0, limit) : versions;
+---
+{list.length === 0 ? (
+  <Empty ico="layers" title="Zatím tu není žádná verze" />
+) : (
+  <div class="rows">
+    {list.map((v, i) => {
+      const c = counts[v.id];
+      return (
+        <div class="row ver" data-version={v.id}>
+          <span class:list={['vtag', { latest: i === 0 }]}>{v.tag}</span>
+          <span class="t">
+            <b>{v.name}</b>
+            <small>{v.date}{c && c.total > 0 ? ` · ${c.total} ${c.total === 1 ? 'komentář' : c.total < 5 ? 'komentáře' : 'komentářů'}` : ''}</small>
+          </span>
+          <span class="meta">
+            {c && c.open > 0 && <span class="chip blue"><i></i>{c.open} otevřených</span>}
+            <span class="views">
+              {v.views.includes('desktop') && (
+                <a class="btn dark sm" href={`/client/${project}/${v.id}/desktop`}><Fragment set:html={icon('monitor')} />Počítač</a>
+              )}
+              {v.views.includes('mobile') && (
+                <a class="btn light sm" href={`/client/${project}/${v.id}/mobile`}><Fragment set:html={icon('phone')} />Mobil</a>
+              )}
+            </span>
+          </span>
+        </div>
+      );
+    })}
+  </div>
+)}
+
+<style>
+  .vtag { display: inline-grid; place-items: center; min-width: 52px; height: 30px; padding: 0 10px; border-radius: 9px; background: var(--card2); font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--ink2); flex: none; }
+  .vtag.latest { background: var(--blue-tint); color: var(--blue); }
+  .views { display: inline-flex; gap: 6px; }
+  @media (max-width: 640px) { .ver { flex-wrap: wrap; } .ver .meta { width: 100%; justify-content: flex-end; } }
+</style>

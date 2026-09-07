@@ -19,7 +19,7 @@ const SUITY = [
   /* redirect si staticky server pousti sam a na wrangler dev nezavisi */
   'redirect'
 ];
-const SERVE = '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/serve.sh';
+const SERVE = (process.env.WK_OUT || '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/') + 'serve.sh';
 const ZDRAVI = 'http://127.0.0.1:8788/client/login';
 
 async function serverZije() {

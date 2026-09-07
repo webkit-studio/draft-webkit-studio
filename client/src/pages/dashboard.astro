@@ -1,44 +1,103 @@
 ---
+/* Rozcestník: karty projektů. Karta nese obálku, název, podtitulek,
+   počet verzí a otevřených komentářů a datum poslední verze. */
 import Layout from '../components/Layout.astro';
 import { getDb } from '../lib/env';
+import { icon } from '../lib/icons';
+import { gradientFor } from '../lib/portal';
+import { versionsFor } from '../lib/versions';
 
 const db = getDb();
 const user = Astro.locals.user!;
 
-let projects: { slug: string; name: string; subtitle: string | null }[] = [];
+type P = { slug: string; name: string; subtitle: string | null };
+let projects: P[] = [];
+const open: Record<string, number> = {};
 if (db && user.projects.length) {
   const marks = user.projects.map((_, i) => `?${i + 1}`).join(',');
   const res = await db
     .prepare(`SELECT slug, name, subtitle FROM projects WHERE slug IN (${marks}) ORDER BY sort, name`)
     .bind(...user.projects)
-    .all<{ slug: string; name: string; subtitle: string | null }>();
+    .all<P>();
   projects = res.results;
+  const c = await db
+    .prepare(
+      `SELECT project, SUM(CASE WHEN resolved = 0 AND parent_id IS NULL THEN 1 ELSE 0 END) AS open
+         FROM comments WHERE project IN (${marks}) GROUP BY project`
+    )
+    .bind(...user.projects)
+    .all<{ project: string; open: number }>();
+  for (const r of c.results) open[r.project] = Number(r.open || 0);
 }
+
+const hodina = new Date().getUTCHours() + 2;
+const pozdrav = hodina < 10 ? 'Dobré ráno' : hodina < 18 ? 'Dobrý den' : 'Dobrý večer';
+const jmeno = (user.firstName || '').trim();
 ---
 
-<Layout title="Projekty – Webkit.Studio">
-  <div class="mx-auto max-w-container px-5 py-8">
-    <h1 class="mb-6 text-h3 font-semibold">Projekty</h1>
-
-    {projects.length === 0 ? (
-      <p class="text-gray-500">Zatím tu nic není.</p>
-    ) : (
-      <ul class="border-t border-gray-300">
-        {projects.map((p) => (
-          <li class="border-b border-gray-300">
-            <a
-              href={`/client/${p.slug}`}
-              class="group flex items-center justify-between py-5 transition-colors duration-fast ease-out"
-            >
-              <span>
-                <span class="text-h4 font-semibold group-hover:text-accent">{p.name}</span>
-                {p.subtitle && <span class="ml-3 text-small text-gray-500">{p.subtitle}</span>}
-              </span>
-              <span class="text-gray-500 transition-transform duration-fast ease-out group-hover:translate-x-1 group-hover:text-accent" aria-hidden="true">→</span>
-            </a>
-          </li>
-        ))}
-      </ul>
+<Layout title="Projekty – Webkit.Studio" nav="projects">
+  <div class="ph rv">
+    <div>
+      <p class="kicker">{pozdrav}{jmeno ? `, ${jmeno}` : ''}</p>
+      <h1>Projekty</h1>
+    </div>
+    {user.role === 'admin' && (
+      <div class="acts">
+        <a class="btn light sm" href="/client/settings/projects"><Fragment set:html={icon('plus')} />Nový projekt</a>
+      </div>
     )}
   </div>
+
+  {projects.length === 0 ? (
+    <div class="card pad rv d1">
+      <div class="empty">
+        <span class="ico" set:html={icon('grid')} />
+        <b>Zatím tu nic není</b>
+      </div>
+    </div>
+  ) : (
+    <ul class="cards">
+      {projects.map((p, i) => {
+        const g = gradientFor(p.slug);
+        const vs = versionsFor(p.slug);
+        const o = open[p.slug] || 0;
+        return (
+          <li class:list={['rv', `d${Math.min(i + 1, 5)}`]}>
+            <a class="pc card lift" href={`/client/${p.slug}`}>
+              <div class="cover" style={`--g1:${g.g1};--g2:${g.g2};--hx:${g.hx}%;--hy:${g.hy}%`}>
+                <span class="mark" aria-hidden="true">{p.name.charAt(0)}</span>
+                {o > 0 && <span class="chip solid badge">{o} k vyřešení</span>}
+              </div>
+              <div class="pcb">
+                <h3>{p.name}</h3>
+                {p.subtitle && <p class="sub">{p.subtitle}</p>}
+                <div class="pcf">
+                  <span class="chips">
+                    <span class="chip">{vs.length ? `${vs.length} ${vs.length === 1 ? 'návrh' : vs.length < 5 ? 'návrhy' : 'návrhů'}` : 'bez návrhu'}</span>
+                    {vs[0] && <span class="date">{vs[0].date}</span>}
+                  </span>
+                  <span class="go" aria-hidden="true" set:html={icon('arrow')} />
+                </div>
+              </div>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  )}
 </Layout>
+
+<style>
+  .cards { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .pc { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+  .pc .cover { height: 150px; }
+  .pc .badge { position: absolute; right: 16px; top: 16px; backdrop-filter: blur(6px); background: rgba(16,19,33,.55); }
+  .pcb { padding: 18px 22px 20px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .pcb h3 { font-size: 22px; font-variation-settings: "opsz" 48, "wght" 500; letter-spacing: -.02em; }
+  .pcb .sub { color: var(--mute); font-size: 14px; }
+  .pcf { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+  .pcf .chips { display: inline-flex; align-items: center; gap: 10px; }
+  .go { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--card2); color: var(--ink); transition: background .25s, color .25s, transform .35s var(--ease); }
+  .go :global(svg) { width: 17px; height: 17px; }
+  .pc:hover .go { background: var(--blue); color: #fff; transform: translateX(3px); }
+</style>

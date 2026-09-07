@@ -28,38 +28,38 @@ const secretReady = !!env.SESSION_SECRET;
 ---
 
 <Layout title="Založení databáze – Webkit.Studio" bare={true}>
-  <div class="flex min-h-screen items-center justify-center p-5">
-    <div class="w-full max-w-[460px]">
-      <div class="mb-8 text-[13px] font-bold tracking-[0.02em]">WEBKIT.STUDIO</div>
-      <h1 class="mb-5 text-h4 font-semibold">Založení databáze</h1>
+  <div class="su">
+    <div class="su-box">
+      <div class="su-brand"><img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio</div>
+      <h1>Založení databáze</h1>
 
       {!dbReady && (
-        <p class="border border-gray-300 p-4 text-small">Databáze není připojená.</p>
+        <p class="note">Databáze není připojená.</p>
       )}
 
       {dbReady && !secretReady && (
-        <p class="border border-gray-300 p-4 text-small">
+        <p class="note">
           Není nastavená proměnná SESSION_SECRET.
         </p>
       )}
 
       {dbReady && secretReady && hotovo && (
-        <p class="border border-gray-300 p-4 text-small">
+        <p class="note">
           Databáze už je založená. Tahle stránka je tím uzavřená.
-          <a class="ml-2 font-semibold underline" href="/client/login">Přihlásit se</a>
+          <a class="su-link" href="/client/login">Přihlásit se</a>
         </p>
       )}
 
       {dbReady && secretReady && !hotovo && (
         <>
-          <p class="mb-4 text-small text-gray-500">
+          <p class="muted">
             Vlož SESSION_SECRET z Environment variables. Proběhne to jednou – vytvoří se
             schéma, projekty a dva účty. Hesla se ukážou jen teď.
           </p>
           <form id="f" class="flex flex-col gap-2">
             <input
               id="token"
-              class="h-12 w-full border border-gray-300 bg-white px-4 text-base outline-none placeholder:text-gray-500"
+              class="input"
               type="password"
               placeholder="SESSION_SECRET"
               autocomplete="off"
@@ -68,17 +68,28 @@ const secretReady = !!env.SESSION_SECRET;
             />
             <button
               type="submit"
-              class="mt-2 h-12 w-full bg-black text-base font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
+              class="btn full"
             >
               Založit
             </button>
           </form>
-          <pre id="out" class="mt-5 hidden overflow-x-auto border border-gray-300 p-4 text-small"></pre>
+          <pre id="out" class="su-out" hidden></pre>
         </>
       )}
     </div>
   </div>
 </Layout>
+
+<style>
+  .su { display: grid; place-items: center; min-height: 100svh; padding: 24px; }
+  .su-box { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; }
+  .su-brand { display: flex; align-items: center; gap: 9px; color: var(--blue); font-family: var(--display); font-variation-settings: "opsz" 24, "wght" 600; font-size: 16px; margin-bottom: 12px; }
+  .su-brand img { width: 24px; height: 24px; }
+  .su-box h1 { font-size: 32px; font-variation-settings: "opsz" 96, "wght" 400; }
+  .su-box form { display: flex; flex-direction: column; gap: 10px; }
+  .su-out { margin: 0; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--hair); background: #fff; font-family: var(--mono); font-size: 13px; overflow-x: auto; white-space: pre-wrap; }
+  .su-link { margin-left: 8px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+</style>
 
 <script>
   const f = document.getElementById('f');
@@ -102,8 +113,8 @@ const secretReady = !!env.SESSION_SECRET;
       const radky = [];
       const hesla = [];
 
-      out.classList.remove('hidden');
-      out.style.borderColor = '#e2e2e2';
+      out.hidden = false;
+      out.style.borderColor = '';
       btn.disabled = true;
       const vypis = () => { out.textContent = radky.join('\n'); };
 
@@ -119,7 +130,7 @@ const secretReady = !!env.SESSION_SECRET;
           if (!res.ok) {
             radky[radky.length - 1] =
               `${popis}: CHYBA (${res.status}) ${d ? d.error || '' : ''} ${d && d.detail ? '– ' + d.detail : ''}`;
-            out.style.borderColor = '#ff4d00';
+            out.style.borderColor = '#E5484D';
             vypis();
             btn.disabled = false;
             return;
@@ -128,7 +139,7 @@ const secretReady = !!env.SESSION_SECRET;
           /* Spojeni umrelo uprostred kroku - rekneme aspon u ktereho. */
           radky[radky.length - 1] = `${popis}: spojení se serverem se přerušilo.`;
           radky.push('Zkus to znovu – kroky jdou opakovat, nic se nerozbije.');
-          out.style.borderColor = '#ff4d00';
+          out.style.borderColor = '#E5484D';
           vypis();
           btn.disabled = false;
           return;

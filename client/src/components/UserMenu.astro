@@ -1,93 +1,68 @@
 ---
-/* Účet v hlavičce: dlaždice s iniciálou, jméno, po kliknutí nabídka.
- *
- * Struktura je Relume Topbar 1 (avatar → DropdownMenu s Nastavením
- * a Odhlášením), vzhled z /design/webkit/. Radix se sem netahá kvůli jedné
- * nabídce - je to pár řádků obsluhy a Worker si nenese motion ani cva.
- *
- * Dlaždice je hranatá, ne kolečko: design systém má radius 0 všude a jediná
- * povolená výjimka je značková čtvrtkružnice. Kolečko by bylo jediný oblý
- * prvek v celé aplikaci. */
+/* Účet v patě bočního panelu: avatar, jméno, e-mail a nabídka, která se
+   otevírá nahoru. Selektory data-usermenu-* drží testy - neměnit. */
 import { displayName, initial } from '../lib/db';
+import { icon } from '../lib/icons';
 
 const user = Astro.locals.user!;
 const jmeno = displayName(user);
 const pismeno = initial(user);
 ---
 
-<div class="relative" data-usermenu>
-  <button
-    type="button"
-    class="flex items-center gap-3 py-1 pl-1 pr-2 text-small transition-colors duration-fast ease-out hover:text-accent"
-    aria-haspopup="menu"
-    aria-expanded="false"
-    data-usermenu-trigger
-  >
-    <span
-      class="flex h-[32px] w-[32px] flex-none items-center justify-center bg-black text-[13px] font-bold leading-none text-white"
-      aria-hidden="true">{pismeno}</span>
-    <span class="hidden font-medium sm:inline">{jmeno}</span>
-    <span class="text-tiny text-gray-500 transition-transform duration-fast ease-out" aria-hidden="true" data-usermenu-caret>▾</span>
+<div class="um" data-usermenu>
+  <button type="button" class="um-t" aria-haspopup="menu" aria-expanded="false" data-usermenu-trigger>
+    <span class="avatar blue" aria-hidden="true">{pismeno}</span>
+    <span class="um-n">
+      <span class="um-name">{jmeno}</span>
+      <span class="um-mail">{user.email}</span>
+    </span>
+    <span class="um-c" aria-hidden="true" data-usermenu-caret set:html={icon('chevron')} />
   </button>
 
-  <div
-    class="absolute right-0 top-[calc(100%+8px)] z-50 hidden w-[220px] border border-gray-300 bg-white"
-    role="menu"
-    data-usermenu-panel
-  >
-    <div class="border-b border-gray-300 px-4 py-3">
-      <div class="truncate font-semibold">{jmeno}</div>
-      <div class="truncate text-tiny text-gray-500">{user.email}</div>
-    </div>
-    <a
-      href="/client/settings/account"
-      role="menuitem"
-      class="block px-4 py-3 text-small transition-colors duration-fast ease-out hover:bg-gray-100"
-      >Nastavení</a
-    >
-    <form method="post" action="/client/api/logout" class="border-t border-gray-300">
-      <button
-        type="submit"
-        role="menuitem"
-        class="block w-full px-4 py-3 text-left text-small transition-colors duration-fast ease-out hover:bg-gray-100 hover:text-accent"
-        >Odhlásit</button
-      >
+  <div class="um-p" role="menu" data-usermenu-panel hidden>
+    <a href="/client/settings/account" role="menuitem">
+      <Fragment set:html={icon('settings')} /> Nastavení
+    </a>
+    <form method="post" action="/client/api/logout">
+      <button type="submit" role="menuitem"><Fragment set:html={icon('logout')} /> Odhlásit</button>
     </form>
   </div>
 </div>
 
+<style>
+  .um { position: relative; }
+  .um-t { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 1px solid var(--hair);
+    border-radius: 16px; background: #fff; text-align: left; box-shadow: var(--sh-card); transition: box-shadow .3s var(--ease), transform .3s var(--ease); }
+  .um-t:hover { box-shadow: var(--sh-hover); }
+  .um-n { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+  .um-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .um-mail { font-size: 12px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .um-c { color: var(--mute); transform: rotate(180deg); transition: transform .25s var(--ease); }
+  .um-c :global(svg) { width: 16px; height: 16px; }
+  .um-t[aria-expanded="true"] .um-c { transform: rotate(0); }
+  .um-p { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 50; padding: 6px; border-radius: 16px;
+    background: #fff; border: 1px solid var(--hair); box-shadow: var(--sh-hover); }
+  .um-p a, .um-p button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; background: none;
+    border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--ink2); text-align: left; transition: background .2s; }
+  .um-p a:hover, .um-p button:hover { background: var(--card2); color: var(--ink); }
+  .um-p :global(svg) { width: 17px; height: 17px; }
+  .um-p form { margin: 0; }
+</style>
+
 <script>
-  /* Jedna nabídka na stránku, obsluha delegovaná - ať funguje i v prohlížeči
-     návrhu, kam se hlavička vkládá jako hotové HTML. */
   const wrap = document.querySelector('[data-usermenu]');
   if (wrap) {
     const trigger = wrap.querySelector('[data-usermenu-trigger]') as HTMLButtonElement;
     const panel = wrap.querySelector('[data-usermenu-panel]') as HTMLElement;
-    const caret = wrap.querySelector('[data-usermenu-caret]') as HTMLElement;
-
-    const zavri = () => {
-      panel.classList.add('hidden');
-      trigger.setAttribute('aria-expanded', 'false');
-      caret.style.transform = '';
-    };
-    const otevri = () => {
-      panel.classList.remove('hidden');
-      trigger.setAttribute('aria-expanded', 'true');
-      caret.style.transform = 'rotate(180deg)';
-    };
-
+    const zavri = () => { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
+    const otevri = () => { panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); };
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
       trigger.getAttribute('aria-expanded') === 'true' ? zavri() : otevri();
     });
-    document.addEventListener('click', (e) => {
-      if (!wrap.contains(e.target as Node)) zavri();
-    });
+    document.addEventListener('click', (e) => { if (!wrap.contains(e.target as Node)) zavri(); });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
-        zavri();
-        trigger.focus();
-      }
+      if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') { zavri(); trigger.focus(); }
     });
   }
 </script>

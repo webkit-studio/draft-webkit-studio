@@ -43,11 +43,16 @@ Jak to vypadalo do přepnutí:
    wireframu uvnitř `.frame` a soubory `wireframe.html`. Chrome okolo (lišty,
    stránky prostředí, brána) je moje odpovědnost a drží design systém.
 2. Nedotýkat se: `CNAME`, `robots.txt`.
-3. **Styl výhradně z tokenů** `/design/webkit/tokens/`: monochrom + akcent
-   `#ff4d00` (střídmě, ideálně 1 akcentní prvek na pohled), radius 0 všude,
-   žádné stíny (hloubka = hairliny `#e2e2e2`), Urbanist, focus stav = 2px
-   akcentní ring s offsetem, motion 120/200 ms `cubic-bezier(0.2,0,0,1)`,
-   respektovat `prefers-reduced-motion`. Nic nedopočítávat od oka.
+3. **Styl = design systém nového webu** (`client/src/styles/app.css`, stejné
+   tokeny jako `site/webkit.css` v repu webkit-studio): pozadí `#ECEFF3`,
+   inkoust `#101321`, modrá `#1D2BE8` (akce, aktivní stav), lila `#8A96FF`
+   a `#D8DCFB` (měkké plochy), karty bílé s radiusem 22 px a jemným stínem,
+   tlačítka radius 12 px, štítky pilulky. Titulky Bricolage Grotesque
+   (opsz 96 / wght 400 na h1), text Instrument Sans, meta IBM Plex Mono.
+   Motion `cubic-bezier(.2,.8,.2,1)`, respektovat `prefers-reduced-motion`.
+   Starý monochrom + oranžová `#ff4d00` v `/design/webkit/` je archiv, ne
+   zdroj pravdy. Nic nedopočítávat od oka - nové prvky skládat z tříd
+   v app.css (`.card`, `.btn`, `.chip`, `.tabs`, `.row`, `.empty`).
 4. **Texty: stroze.** Česky, en dash „–", žádná emoji. Žádné pomocné,
    vysvětlující ani zdvořilostní věty („Návrh si prohlédněte…", „Heslo jste
    dostali…" apod.) – působí jako AI slop. Placeholdery v [hranatých

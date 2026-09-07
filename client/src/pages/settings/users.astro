@@ -11,8 +11,8 @@ export const prerender = false;
 ---
 
 <SettingsShell title="Správa uživatelů" tab="users">
-  <ul id="seznam" class="border-t border-gray-300"></ul>
-  <p class="mt-4 text-tiny text-gray-500">
+  <section class="card"><ul id="seznam" class="list"></ul></section>
+  <p class="hint">
     Nový účet vzniká bez role a bez přístupů. Roli admina lze dát jen zásahem do databáze.
   </p>
 </SettingsShell>
@@ -72,7 +72,7 @@ export const prerender = false;
   /* --- pole s heslem: buď se neví, nebo se právě vygenerovalo --- */
   function poleHesla(u: Uzivatel): HTMLDivElement {
     const box = document.createElement('div');
-    box.className = 'flex flex-wrap items-center gap-2';
+    box.className = 'pwbox';
 
     const znamé = hesla.get(u.id);
     if (znamé) {
@@ -80,13 +80,12 @@ export const prerender = false;
       pole.readOnly = true;
       pole.type = 'text';
       pole.value = znamé;
-      pole.className =
-        'h-11 min-w-[220px] flex-1 border border-gray-300 bg-white px-3 font-mono text-small outline-none';
+      pole.className = 'input mono';
       pole.setAttribute('aria-label', `Nové heslo pro ${u.email}`);
       box.appendChild(pole);
 
       const kopie = tlacitko(ikona('copy'), 'icon', 'Zkopírovat heslo');
-      kopie.className = kopie.className.replace('h-[32px] w-[32px]', 'h-11 w-11');
+      kopie.classList.remove('xs'); kopie.classList.add('sm');
       kopie.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(znamé);
@@ -99,7 +98,7 @@ export const prerender = false;
       box.appendChild(kopie);
     } else {
       const text = document.createElement('p');
-      text.className = 'flex-1 text-small text-gray-500';
+      text.className = 'muted';
       text.textContent = 'Uložené heslo přečíst nelze – v databázi je jen jeho otisk.';
       box.appendChild(text);
     }
@@ -125,14 +124,14 @@ export const prerender = false;
   /* --- řádek pro přidání --- */
   function radekPridat(): HTMLLIElement {
     const { li, hlava, obsah, telo, prepni } = radek();
-    hlava.className += ' text-accent';
+    hlava.classList.add('add');
     const t = document.createElement('span');
-    t.className = 'font-semibold';
+    t.className = 'nm';
     t.textContent = 'Přidat uživatele';
     obsah.append(ikona('plus'), t);
 
     const form = document.createElement('form');
-    form.className = 'flex flex-col gap-3';
+    form.className = 'form';
     const email = poleText('email', 'E-mail', { required: true, type: 'email' });
     const first = poleText('firstName', 'Jméno');
     const last = poleText('lastName', 'Příjmení');
@@ -141,7 +140,7 @@ export const prerender = false;
     const ulozit = tlacitko('Založit účet', 'primary');
     ulozit.type = 'submit';
     const rada = document.createElement('div');
-    rada.className = 'flex gap-2';
+    rada.className = 'acts';
     rada.appendChild(ulozit);
     form.appendChild(rada);
     telo.appendChild(form);
@@ -175,32 +174,31 @@ export const prerender = false;
     const { li, obsah, telo, akce } = radek();
 
     const avatar = document.createElement('span');
-    avatar.className =
-      'flex h-[32px] w-[32px] flex-none items-center justify-center bg-black text-[13px] font-bold leading-none text-white';
+    avatar.className = 'avatar';
     avatar.setAttribute('aria-hidden', 'true');
     avatar.textContent = pismeno(u);
     obsah.appendChild(avatar);
 
     const ident = document.createElement('span');
-    ident.className = 'min-w-0 flex-1';
+    ident.className = 'ident';
     const jm = document.createElement('span');
-    jm.className = 'font-semibold';
+    jm.className = 'nm';
     jm.textContent = cele(u);
     ident.appendChild(jm);
     if (u.role === 'admin') {
       const znak = document.createElement('span');
-      znak.className = 'ml-2 text-tiny uppercase tracking-[0.08em] text-accent';
+      znak.className = 'chip ink xs';
       znak.textContent = 'admin';
-      ident.appendChild(znak);
+      jm.appendChild(znak);
     }
     const mail = document.createElement('span');
-    mail.className = 'block truncate text-tiny text-gray-500';
+    mail.className = 'sub';
     mail.textContent = u.email;
     ident.appendChild(mail);
     obsah.appendChild(ident);
 
     const kolik = document.createElement('span');
-    kolik.className = 'hidden flex-none text-tiny text-gray-500 sm:block';
+    kolik.className = 'cnt';
     kolik.textContent =
       u.role === 'admin' ? 'všechny projekty' : `${u.projects.length} z ${projekty.length} projektů`;
     obsah.appendChild(kolik);
@@ -224,29 +222,29 @@ export const prerender = false;
 
     /* rozbalený obsah: heslo a přístupy */
     const h2 = document.createElement('h3');
-    h2.className = 'mb-3 text-small font-semibold';
+    h2.className = 'h';
     h2.textContent = 'Heslo';
     telo.append(h2, poleHesla(u));
 
     const h3 = document.createElement('h3');
-    h3.className = 'mb-3 mt-6 text-small font-semibold';
+    h3.className = 'h mt';
     h3.textContent = 'Přístup k projektům';
     telo.appendChild(h3);
 
     if (u.role === 'admin') {
       const p = document.createElement('p');
-      p.className = 'text-small text-gray-500';
+      p.className = 'muted';
       p.textContent = 'Admin vidí všechny projekty z definice role.';
       telo.appendChild(p);
     } else {
       const mrizka = document.createElement('div');
-      mrizka.className = 'grid gap-2 sm:grid-cols-2';
+      mrizka.className = 'grid2';
       for (const p of projekty) {
         const label = document.createElement('label');
-        label.className = 'flex cursor-pointer items-center gap-2 text-small';
+        label.className = 'check';
         const cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.className = 'h-4 w-4 accent-accent';
+        cb.className = '';
         cb.value = p.slug;
         cb.checked = u.projects.includes(p.slug);
         cb.addEventListener('change', async () => {

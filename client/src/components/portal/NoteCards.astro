@@ -1,0 +1,30 @@
+---
+import type { Note } from '../../lib/portal';
+import Empty from './Empty.astro';
+interface Props { notes: Note[]; limit?: number }
+const { notes, limit } = Astro.props;
+const list = limit ? notes.slice(0, limit) : notes;
+---
+{list.length === 0 ? (
+  <Empty ico="note" title="Zatím žádné poznámky" />
+) : (
+  <div class="notes">
+    {list.map((n) => (
+      <article class="nt">
+        <div class="nh"><span class="date">{n.created}</span><span class="au">{n.author}</span></div>
+        <h4>{n.title}</h4>
+        <p>{n.excerpt}</p>
+      </article>
+    ))}
+  </div>
+)}
+
+<style>
+  .notes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .nt { padding: 18px 18px 20px; border-radius: 16px; background: var(--card2); border: 1px solid transparent; transition: border-color .25s, background .25s; }
+  .nt:hover { background: #fff; border-color: var(--hair); }
+  .nh { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .au { font-size: 12.5px; color: var(--mute); }
+  .nt h4 { font-size: 17px; font-variation-settings: "opsz" 48, "wght" 500; margin-bottom: 6px; }
+  .nt p { font-size: 14.5px; color: var(--ink2); line-height: 1.5; }
+</style>

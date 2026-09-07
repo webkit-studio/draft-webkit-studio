@@ -1,0 +1,37 @@
+---
+import type { Task } from '../../lib/portal';
+import { STATUS_CHIP } from '../../lib/portal';
+import { icon } from '../../lib/icons';
+import Empty from './Empty.astro';
+interface Props { tasks: Task[]; limit?: number; compact?: boolean }
+const { tasks, limit, compact = false } = Astro.props;
+const list = limit ? tasks.slice(0, limit) : tasks;
+---
+{list.length === 0 ? (
+  <Empty ico="check" title="Zatím žádné úkoly" />
+) : (
+  <div class="rows" data-tasks>
+    {list.map((t) => (
+      <div class="row" data-status={t.status}>
+        <span class:list={['st', { done: t.status === 'Hotovo' || t.status === 'Zrušeno' || t.status === 'Archiv' }]} aria-hidden="true">
+          {t.status === 'Hotovo' && <Fragment set:html={icon('check')} />}
+        </span>
+        <span class="t">
+          <b>{t.name}</b>
+          {!compact && <small>{[t.phase, t.assignee].filter(Boolean).join(' · ')}</small>}
+        </span>
+        <span class="meta">
+          {t.due && <span class="date">{t.due}</span>}
+          <span class:list={['chip', STATUS_CHIP[t.status]]}><i></i>{t.status}</span>
+        </span>
+      </div>
+    ))}
+  </div>
+)}
+
+<style>
+  .st { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--line2); flex: none; color: #fff; }
+  .st.done { background: var(--ok); border-color: var(--ok); }
+  .st :global(svg) { width: 14px; height: 14px; }
+  @media (max-width: 640px) { .meta .date { display: none; } }
+</style>

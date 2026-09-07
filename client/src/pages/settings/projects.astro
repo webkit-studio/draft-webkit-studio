@@ -10,8 +10,8 @@ export const prerender = false;
 ---
 
 <SettingsShell title="Správa projektů" tab="projects">
-  <ul id="seznam" class="border-t border-gray-300"></ul>
-  <p class="mt-4 text-tiny text-gray-500">
+  <section class="card"><ul id="seznam" class="list"></ul></section>
+  <p class="hint">
     Smazání odebere projekt z rozcestníku i s komentáři. Složka s návrhem v repozitáři zůstane.
   </p>
 </SettingsShell>
@@ -54,20 +54,20 @@ export const prerender = false;
   /* --- řádek pro přidání --- */
   function radekPridat(): HTMLLIElement {
     const { li, hlava, obsah, telo, prepni } = radek();
-    hlava.className += ' text-accent';
+    hlava.classList.add('add');
     const t = document.createElement('span');
-    t.className = 'font-semibold';
+    t.className = 'nm';
     t.textContent = 'Přidat projekt';
     obsah.append(ikona('plus'), t);
 
     const form = document.createElement('form');
-    form.className = 'flex flex-col gap-3';
+    form.className = 'form';
     const slug = poleText('slug', 'Slug (část adresy, např. arbosis)', { required: true });
     const name = poleText('name', 'Název', { required: true });
     const sub = poleText('subtitle', 'Podtitulek (nepovinný)');
     form.append(slug.wrap, name.wrap, sub.wrap);
     const akce = document.createElement('div');
-    akce.className = 'flex gap-2';
+    akce.className = 'acts';
     const ulozit = tlacitko('Založit projekt', 'primary');
     ulozit.type = 'submit';
     akce.appendChild(ulozit);
@@ -103,24 +103,24 @@ export const prerender = false;
     const { li, obsah, telo, akce, prepni } = radek();
 
     const ident = document.createElement('span');
-    ident.className = 'min-w-0 flex-1';
+    ident.className = 'ident';
     const nazev = document.createElement('span');
-    nazev.className = 'font-semibold';
+    nazev.className = 'nm';
     nazev.textContent = p.name;
     const slug = document.createElement('span');
-    slug.className = 'ml-3 text-tiny text-gray-500';
+    slug.className = 'slug';
     slug.textContent = '/' + p.slug;
     ident.append(nazev, slug);
     if (p.subtitle) {
       const sub = document.createElement('span');
-      sub.className = 'block truncate text-tiny text-gray-500';
+      sub.className = 'sub';
       sub.textContent = p.subtitle;
       ident.appendChild(sub);
     }
     obsah.appendChild(ident);
 
     const pocty = document.createElement('span');
-    pocty.className = 'hidden flex-none text-tiny text-gray-500 sm:block';
+    pocty.className = 'cnt';
     pocty.textContent =
       `${p.users} ${mnozne(p.users, UZIVATEL)} · ${p.comments} ${mnozne(p.comments, KOMENTAR)}`;
     obsah.appendChild(pocty);
@@ -146,13 +146,13 @@ export const prerender = false;
 
     /* rozbalený obsah: úprava názvu a podtitulku */
     const form = document.createElement('form');
-    form.className = 'flex flex-col gap-3';
+    form.className = 'form';
     const name = poleText('name', 'Název', { required: true, value: p.name });
     const sub = poleText('subtitle', 'Podtitulek (nepovinný)', { value: p.subtitle || '' });
     form.append(name.wrap, sub.wrap);
 
     const pozn = document.createElement('p');
-    pozn.className = 'text-tiny text-gray-500';
+    pozn.className = 'muted';
     pozn.textContent =
       'Slug se nemění – visí na něm adresa, přidělené přístupy i komentáře. Jiný slug znamená nový projekt.';
     form.appendChild(pozn);
@@ -160,7 +160,7 @@ export const prerender = false;
     const ulozit = tlacitko('Uložit', 'primary');
     ulozit.type = 'submit';
     const rada = document.createElement('div');
-    rada.className = 'flex gap-2';
+    rada.className = 'acts';
     rada.appendChild(ulozit);
     form.appendChild(rada);
     telo.appendChild(form);

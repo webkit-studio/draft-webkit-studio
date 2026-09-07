@@ -14,7 +14,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 
 const BASE = 'http://127.0.0.1:8788';
-const OUT = '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/';
+const OUT = (process.env.WK_OUT || '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/');
 const SECRET = 'lokalni-testovaci-tajemstvi-jen-pro-vyvoj-000';
 let pass = 0, fail = 0;
 const check = (n, ok, d = '') => { console.log(`${ok ? 'OK  ' : 'CHYBA'} ${n}${d ? '  ' + d : ''}`); ok ? pass++ : fail++; };

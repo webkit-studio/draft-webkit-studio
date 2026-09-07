@@ -2,7 +2,7 @@
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const BASE = 'http://127.0.0.1:8788';
-const OUT = '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/';
+const OUT = (process.env.WK_OUT || '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/');
 const creds = {};
 for (const l of fs.readFileSync(OUT + 'creds.txt', 'utf8').split('\n')) {
   const m = l.match(/^(\S+@\S+)\s+(\S+)\s+(\S+)\s*$/); if (m) creds[m[1]] = m[3];
@@ -30,8 +30,8 @@ async function login(browser, email) {
     check('klient otevře svůj projekt', res.status() === 200, `stav ${res.status()}`);
     const h1 = await page.locator('h1').textContent();
     check('je tam název projektu', (h1 || '').includes('Arbosis'), h1 || '');
-    const verze = await page.locator('main .border-b').count();
-    check('vypsané dvě verze', verze === 2, `nalezeno ${verze}`);
+    const verze = await page.locator('main [data-version]').count();
+    check('vypsané verze', verze === 3, `nalezeno ${verze}`);
     const pc = await page.locator('a[href="/client/arbosis/v2/desktop"]').count();
     const mob = await page.locator('a[href="/client/arbosis/v2/mobile"]').count();
     check('odkazy Počítač i Mobil', pc === 1 && mob === 1, `pc=${pc} mobil=${mob}`);

@@ -1,0 +1,46 @@
+/* Lišta prohlížeče návrhu a komentáře v paletě nového webu.
+   Vkládá se za vlastní styly prohlížeče (viewer.ts), takže přepisuje jen
+   chrome okolo plátna - plátno (#frame) zůstává netknuté. */
+:root {
+  --black: #101321; --white: #ffffff; --gray-100: #ECEFF3; --gray-300: #CDD2DC; --gray-500: #6B7186;
+  --accent: #1D2BE8; --accent-ink: #ffffff; --focus-ring: #1D2BE8;
+  --inverse-mut: rgba(255,255,255,.66); --inverse-line: rgba(255,255,255,.22);
+  --font-sans: "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --c-radius: 10px;
+}
+body { background: #E2E6EC; font-family: var(--font-sans); }
+.bar { background: #101321; color: #fff; gap: 14px; }
+.bar a.back { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); font-size: 13px; }
+.bar a.back:hover { color: #fff; background: rgba(255,255,255,.14); }
+.bar .title { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-variation-settings: "opsz" 24, "wght" 600; letter-spacing: -.01em; font-size: 14px; }
+.bar .title .tw { color: #8A96FF; }
+.bar .title .tx { color: rgba(255,255,255,.35); font-family: var(--font-sans); font-weight: 500; }
+.bar .title .tc { text-transform: none; }
+.bar .title small { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11.5px; color: rgba(255,255,255,.55); }
+.bar .switch { border: 0; padding: 3px; border-radius: 999px; background: rgba(255,255,255,.1); height: 34px; gap: 2px; }
+.bar .switch a { border-radius: 999px; padding: 0 12px; font-size: 12.5px; color: rgba(255,255,255,.7); }
+.bar .switch a[aria-current] { background: #fff; color: #101321; }
+.bar .who b { font-weight: 600; }
+.bar .who button { color: rgba(255,255,255,.66); }
+.bar .who button:hover { color: #8A96FF; }
+.cgroup { border-radius: 999px; overflow: hidden; border-color: rgba(255,255,255,.22); }
+.cbtn { border-radius: 999px; }
+.cbadd { color: #fff !important; }
+.frame { border-radius: 14px; border-color: rgba(16,19,33,.08); box-shadow: 0 30px 80px -40px rgba(16,19,33,.35); overflow: hidden; }
+.stage { padding: 28px 20px 64px; }
+.cpanel { box-shadow: -20px 0 60px -40px rgba(16,19,33,.35); }
+.cpin { border-radius: 50% !important; box-shadow: 0 4px 12px -4px rgba(16,19,33,.5); }
+/* Úzké okno: lišta se musí vejít do 393 px, jinak se plátno posune a
+   tlačítka vpravo jsou mimo obrazovku. */
+@media (max-width: 560px) {
+  .bar { gap: 8px; padding: 0 10px; }
+  .bar a.back { font-size: 0; padding: 0; width: 32px; justify-content: center; }
+  .bar a.back::before { content: "←"; font-size: 15px; }
+  .bar .switch a { padding: 0 10px; }
+  .stage { padding: 16px 8px 48px; }
+}
+@media (max-width: 420px) {
+  .bar { gap: 6px; padding: 0 8px; }
+  .bar .switch a { padding: 0 9px; }
+  .bar .who { display: none; }
+}

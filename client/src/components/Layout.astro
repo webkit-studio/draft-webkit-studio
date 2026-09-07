@@ -1,54 +1,119 @@
 ---
-/* Základní rám aplikace. Co-brand drží pravidlo design systému:
-   "WEBKIT.STUDIO x NÁZEV", kde x je akcentní a pro čtečky skryté,
-   název klienta uppercase přes CSS. */
+/* Rám aplikace: boční panel vlevo (na telefonu zásuvka), obsah vpravo.
+   Design systém = nový web Webkit.Studio (src/styles/app.css). */
 import '../styles/app.css';
 import UserMenu from './UserMenu.astro';
+import { icon } from '../lib/icons';
+import { SECTIONS, gradientFor, type SectionId } from '../lib/portal';
 
 interface Props {
   title: string;
+  /* název klienta - drží co-brand v titulku okna */
   clientName?: string | null;
-  /* lišta se skryje na přihlašovací stránce */
+  /* bez panelu (přihlášení, založení databáze) */
   bare?: boolean;
+  /* projekt, ve kterém se uživatel právě pohybuje: panel ukáže jeho sekce */
+  project?: { slug: string; name: string } | null;
+  section?: SectionId | null;
+  /* zvýrazněná položka hlavní navigace */
+  nav?: 'projects' | 'settings' | null;
 }
 
-const { title, clientName = null, bare = false } = Astro.props;
+const { title, clientName = null, bare = false, project = null, section = null, nav = null } = Astro.props;
 const user = Astro.locals.user;
+const aktivniNav = nav ?? (project ? null : Astro.url.pathname.includes('/settings') ? 'settings' : 'projects');
+const g = project ? gradientFor(project.slug) : null;
+const demo = Astro.url.searchParams.get('demo') === '1' ? '?demo=1' : '';
 ---
 
 <!doctype html>
 <html lang="cs">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#ECEFF3" />
     <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/client/assets/favicon.svg" />
+    <link rel="icon" type="image/png" href="/client/assets/favicon.png" />
+    <link rel="apple-touch-icon" href="/client/assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
   </head>
-  <body class="min-h-screen bg-white text-black" data-me={user ? user.id : undefined}>
-    {!bare && (
-      <header class="flex h-[52px] items-center justify-between border-b border-gray-300 px-5">
-        <a href="/client/dashboard" class="flex items-center gap-3">
-          <span class="text-[13px] font-bold tracking-[0.02em]">WEBKIT.STUDIO</span>
-          {clientName && (
-            <>
-              <span class="text-[13px] font-bold text-accent" aria-hidden="true">x</span>
-              <span class="text-[13px] font-bold uppercase tracking-[0.02em]">{clientName}</span>
-            </>
-          )}
-        </a>
+  <body data-me={user ? user.id : undefined}>
+    <div class="mist" aria-hidden="true"><i class="a"></i><i class="b"></i></div>
 
-        {user && <UserMenu />}
-      </header>
+    {bare ? (
+      <main><slot /></main>
+    ) : (
+      <div class="app">
+        <div class="scrim" data-nav-close></div>
+        <aside class="sb" id="sb">
+          <a class="brand" href="/client/dashboard"><img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio</a>
+
+          <nav aria-label="Hlavní">
+            <a href="/client/dashboard" aria-current={aktivniNav === 'projects' ? 'page' : undefined}>
+              <Fragment set:html={icon('grid')} /> Projekty
+            </a>
+          </nav>
+
+          {project && (
+            <div class="proj">
+              <div class="pname">
+                <span class="sq" style={`background:linear-gradient(135deg,${g!.g1},${g!.g2})`}>{project.name.charAt(0)}</span>
+                <span class="truncate">{project.name}</span>
+              </div>
+              <nav aria-label="Sekce projektu">
+                {SECTIONS.map((s) => (
+                  <a
+                    href={`/client/${project.slug}${s.slug ? '/' + s.slug : ''}${demo}`}
+                    aria-current={section === s.id ? 'page' : undefined}
+                  >
+                    <Fragment set:html={icon(s.icon)} /> {s.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          )}
+
+          <div class="spacer"></div>
+
+          <div class="foot">
+            <nav aria-label="Účet">
+              <a href="/client/settings/account" aria-current={aktivniNav === 'settings' ? 'page' : undefined}>
+                <Fragment set:html={icon('settings')} /> Nastavení
+              </a>
+            </nav>
+            {user && <UserMenu />}
+          </div>
+        </aside>
+
+        <div class="main-col">
+          <div class="topbar">
+            <a class="brand" href="/client/dashboard"><img src="/client/assets/symbol-blue.png" alt="" />Webkit.Studio</a>
+            <button type="button" class="burger" aria-label="Menu" aria-controls="sb" aria-expanded="false" data-nav-toggle>
+              <Fragment set:html={icon('menu')} />
+            </button>
+          </div>
+          <main class="main"><div class="page"><slot /></div></main>
+        </div>
+      </div>
     )}
 
-    <main>
-      <slot />
-    </main>
+    <script>
+      const btn = document.querySelector('[data-nav-toggle]');
+      const close = () => { document.body.classList.remove('nav-open'); btn?.setAttribute('aria-expanded', 'false'); };
+      btn?.addEventListener('click', () => {
+        const open = !document.body.classList.contains('nav-open');
+        document.body.classList.toggle('nav-open', open);
+        btn.setAttribute('aria-expanded', String(open));
+      });
+      document.querySelector('[data-nav-close]')?.addEventListener('click', close);
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    </script>
   </body>
 </html>

@@ -1,13 +1,7 @@
 ---
-/* Rám nastavení: boční panel s taby vlevo, obsah vpravo.
- *
- * Struktura je Relume Sidebar (svislá navigace, aktivní položka nese stav),
- * vzhled z /design/webkit/: hairline místo stínu, radius 0, aktivní tab
- * černý. Klient tu má jen Můj účet, admin navíc obě správy - skrytí taby
- * není bezpečnostní prvek, na adresy hlídá middleware.
- *
- * Na úzkém okně se panel překlopí nad obsah do vodorovné řady, aby se
- * nastavení dalo obsloužit i z telefonu. */
+/* Rám nastavení: hlavička a taby, pod nimi obsah. Klient má jen Můj účet,
+   admin i obě správy - skrytí tabů není bezpečnostní prvek, adresy hlídá
+   middleware. nav[aria-label="Nastavení"] a #stav drží testy. */
 import Layout from './Layout.astro';
 
 interface Props {
@@ -24,41 +18,18 @@ const taby = [
 ].filter((t) => !t.admin || user.role === 'admin');
 ---
 
-<Layout title={`${title} – Webkit.Studio`}>
-  <div class="mx-auto max-w-container px-5 py-8">
-    <h1 class="mb-6 text-h3 font-semibold">Nastavení</h1>
-
-    <div class="flex flex-col gap-6 md:flex-row md:gap-8">
-      <nav class="flex-none md:w-[220px]" aria-label="Nastavení">
-        <ul class="flex overflow-x-auto border-b border-gray-300 md:block md:border-b-0 md:border-t">
-          {taby.map((t) => (
-            <li class="flex-none md:border-b md:border-gray-300">
-              <a
-                href={t.href}
-                aria-current={t.id === tab ? 'page' : undefined}
-                class:list={[
-                  'block whitespace-nowrap px-4 py-3 text-small transition-colors duration-fast ease-out',
-                  t.id === tab
-                    ? 'bg-black font-semibold text-white'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-black'
-                ]}>{t.label}</a
-              >
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div class="min-w-0 flex-1">
-        <p
-          id="stav"
-          class="mb-5 hidden border border-gray-300 px-4 py-3 text-small"
-          role="status"
-          aria-live="polite"
-        ></p>
-        <slot />
-      </div>
-    </div>
+<Layout title={`${title} – Webkit.Studio`} nav="settings">
+  <div class="ph rv">
+    <div><h1>Nastavení</h1></div>
+    <nav class="tabs" aria-label="Nastavení">
+      {taby.map((t) => (
+        <a href={t.href} aria-current={t.id === tab ? 'page' : undefined}>{t.label}</a>
+      ))}
+    </nav>
   </div>
+
+  <p id="stav" class="note" role="status" aria-live="polite" hidden></p>
+  <div class="rv d1"><slot /></div>
 </Layout>
 
 <script>
@@ -67,7 +38,9 @@ const taby = [
   (window as any).stav = (text: string, chyba = false) => {
     if (!box) return;
     box.textContent = text;
-    box.classList.remove('hidden');
-    box.style.borderColor = chyba ? '#ff4d00' : '#e2e2e2';
+    box.hidden = false;
+    box.classList.toggle('err', chyba);
+    box.classList.toggle('ok', !chyba);
+    box.style.marginBottom = '18px';
   };
 </script>

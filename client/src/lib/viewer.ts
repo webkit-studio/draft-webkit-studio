@@ -70,6 +70,10 @@ export function renderViewer(o: ViewerOptions): string | null {
          kterou jeste hleda krok 5, a komentare by se neprilozily. */
   html = html.replace(/href="\/assets\/(favicon\.[a-z]+)"/g, 'href="/client/assets/$1"');
 
+  /* 1b) Paleta nového webu pro lištu a komentáře - za vlastní styly
+         prohlížeče, ať je přepíše; plátna se netýká. */
+  html = html.replace('</head>', '<link rel="stylesheet" href="/client/assets/viewer.css"></head>');
+
   /* 2) Odkazy lišty na nové cesty. */
   html = html
     .replace(new RegExp(`href="/${o.project}/"`, 'g'), `href="${base}"`)

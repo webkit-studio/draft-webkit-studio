@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const BASE = 'http://127.0.0.1:8788';
 const URLE = BASE + '/client/api/export/comments';
-const OUT = '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/';
+const OUT = (process.env.WK_OUT || '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/');
 const SERVE = OUT + 'serve.sh';
 /* Wrangler bezi s -c dist/server/wrangler.json a promenne cte z kopie vedle
    nej, ne z client/.dev.vars. Build tam soubor prekopiruje pri kazdem behu,

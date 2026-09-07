@@ -15,87 +15,50 @@ const jmeno = fullName(user);
 ---
 
 <SettingsShell title="Můj účet" tab="account">
-  <section class="border border-gray-300">
-    <header class="flex items-center gap-4 border-b border-gray-300 px-5 py-4">
-      <span
-        class="flex h-12 w-12 flex-none items-center justify-center bg-black text-h5 font-bold leading-none text-white"
-        aria-hidden="true">{pismeno}</span>
+  <section class="card">
+    <header class="acc-head">
+      <span class="avatar lg blue" aria-hidden="true">{pismeno}</span>
       <div class="min-w-0">
-        <div class="truncate font-semibold">{jmeno}</div>
-        <div class="truncate text-small text-gray-500">{user.email}</div>
-        <div class="text-tiny uppercase tracking-[0.08em] text-gray-500">
-          {user.role === 'admin' ? 'Administrátor' : 'Klient'}
-        </div>
+        <div class="acc-name">{jmeno}</div>
+        <div class="acc-mail">{user.email}</div>
       </div>
+      <span class:list={['chip', user.role === 'admin' ? 'ink' : '']}>{user.role === 'admin' ? 'Administrátor' : 'Klient'}</span>
     </header>
 
-    <form id="f-jmeno" class="px-5 py-5">
-      <h2 class="mb-4 text-h5 font-semibold">Jméno</h2>
-      <div class="flex flex-col gap-3 sm:flex-row">
-        <label class="flex-1">
-          <span class="mb-1 block text-tiny text-gray-500">Jméno</span>
-          <input
-            name="firstName"
-            type="text"
-            value={user.firstName || ''}
-            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
-          />
-        </label>
-        <label class="flex-1">
-          <span class="mb-1 block text-tiny text-gray-500">Příjmení</span>
-          <input
-            name="lastName"
-            type="text"
-            value={user.lastName || ''}
-            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
-          />
-        </label>
+    <form id="f-jmeno" class="acc-form">
+      <h3>Jméno</h3>
+      <div class="acc-row">
+        <label class="field"><span>Jméno</span><input class="input" name="firstName" type="text" value={user.firstName || ''} /></label>
+        <label class="field"><span>Příjmení</span><input class="input" name="lastName" type="text" value={user.lastName || ''} /></label>
       </div>
-      <button
-        type="submit"
-        class="mt-4 h-11 bg-black px-5 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
-        >Uložit jméno</button
-      >
+      <button type="submit" class="btn sm">Uložit jméno</button>
     </form>
   </section>
 
-  <section class="mt-6 border border-gray-300">
-    <form id="f-heslo" class="px-5 py-5">
-      <h2 class="mb-2 text-h5 font-semibold">Heslo</h2>
-      <p class="mb-4 text-small text-gray-500">
-        Uložené heslo nejde zobrazit – v databázi je jen jeho otisk. Zapomenuté heslo
-        nahradí admin novým.
-      </p>
-      <div class="flex flex-col gap-3 sm:flex-row">
-        <label class="flex-1">
-          <span class="mb-1 block text-tiny text-gray-500">Současné heslo</span>
-          <input
-            name="current"
-            type="password"
-            autocomplete="current-password"
-            required
-            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
-          />
-        </label>
-        <label class="flex-1">
-          <span class="mb-1 block text-tiny text-gray-500">Nové heslo (min. 12 znaků)</span>
-          <input
-            name="next"
-            type="password"
-            autocomplete="new-password"
-            minlength="12"
-            required
-            class="h-11 w-full border border-gray-300 px-3 text-small outline-none"
-          />
-        </label>
+  <section class="card acc-pw">
+    <form id="f-heslo" class="acc-form">
+      <h3>Heslo</h3>
+      <p class="acc-hint">Uložené heslo nejde zobrazit – v databázi je jen jeho otisk. Zapomenuté heslo nahradí admin novým.</p>
+      <div class="acc-row">
+        <label class="field"><span>Současné heslo</span><input class="input" name="current" type="password" autocomplete="current-password" required /></label>
+        <label class="field"><span>Nové heslo (min. 12 znaků)</span><input class="input" name="next" type="password" autocomplete="new-password" minlength="12" required /></label>
       </div>
-      <button
-        type="submit"
-        class="mt-4 h-11 bg-black px-5 text-small font-semibold text-white transition-colors duration-fast ease-out hover:bg-accent hover:text-accent-ink"
-        >Změnit heslo</button
-      >
+      <button type="submit" class="btn sm">Změnit heslo</button>
     </form>
   </section>
+
+  <style>
+    .acc-head { display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--hair); }
+    .acc-head .chip { margin-left: auto; }
+    .acc-name { font-weight: 600; font-size: 16px; }
+    .acc-mail { color: var(--mute); font-size: 13.5px; }
+    .acc-form { padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+    .acc-form h3 { font-size: 19px; }
+    .acc-hint { color: var(--mute); font-size: 14px; max-width: 60ch; margin-top: -6px; }
+    .acc-row { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; width: 100%; }
+    .acc-pw { margin-top: 18px; }
+    @media (max-width: 640px) { .acc-row { grid-template-columns: 1fr; } }
+  </style>
 </SettingsShell>
 
 <script>
