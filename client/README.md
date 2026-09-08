@@ -46,6 +46,19 @@ Ve Webflow Cloud → Environment variables. Do repa nikdy.
   (vkládá viewer.ts za styly prohlížeče; plátna se netýká)
 - `public/assets/comments.js` – komentáře s piny (přenesené z původního webu)
 
+## Nová verze návrhu
+
+1. `render/build-viewer.py <verze> <tag> "<datum>"` složí plátno do
+   `src/viewers/<projekt>/<verze>/{desktop,mobile}.html` a nakopíruje assety
+   do `public/<projekt>/<verze>/assets/`.
+2. Verzi zapsat do `src/lib/versions.ts` a naimportovat v `src/lib/viewer.ts`
+   (Workers nemají filesystem, dynamický import podle cesty by neprošel).
+3. `npm run build`, pak push na `main`. Webflow Cloud staví z pushnuté větve.
+
+Plátno musí rozvržení řídit přes `@container` (kontejner `header.top` a
+`main`), ne přes `@media`. Mobilní prohlížeč je 375px rámeček v širokém okně,
+takže podle šířky okna by dostal desktopové rozvržení.
+
 ## Adresy
 
 | Adresa | Kdo |
