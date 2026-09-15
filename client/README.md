@@ -1,6 +1,13 @@
 # client – aplikace na webkit.studio/client
 
 Astro + Cloudflare Workers + D1, nasazuje se přes Webflow Cloud z větve `main`.
+
+> **Od 15. 9. 2026 tahle aplikace jen přesměrovává.** Provoz běží na
+> `webkit.studio/dashboard` (repo `webkit-studio/dashboard`). Middleware
+> vrací 301 podle tabulky v `src/middleware.ts` (`PRESUN`) pro každou
+> adresu pod `/client`, takže staré odkazy z e-mailů drží. Zbytek kódu
+> zůstává jako záznam; prostředí `/client` ve Webflow Cloud se zruší, až
+> aplikace týden jede bez stížností (postup v `docs/navod.md` nového repa).
 Nahrazuje původní statické prostředí postavené na Supabase.
 
 ## Techstack

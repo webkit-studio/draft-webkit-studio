@@ -14,18 +14,19 @@
  */
 import { spawnSync } from 'node:child_process';
 
-const SUITY = [
-  'setup', 'auth', 'project', 'comments', 'viewer', 'settings', 'csrf', 'export', 'admin',
-  /* redirect si staticky server pousti sam a na wrangler dev nezavisi */
-  'redirect'
-];
+/* Od 15. 9. 2026 aplikace pod /client jen presmerovava na /dashboard
+   (middleware), takze sady nad prihlasenim, komentari a spravou uz na ni
+   nedosahnou - zustavaji v tests/ jen jako zaznam. Zive jsou dve:
+   presun (301 z Workeru) a redirect (staticke stranky Pages, staticky
+   server si pousti sama). */
+const SUITY = ['presun', 'redirect'];
 const SERVE = (process.env.WK_OUT || '/tmp/claude-0/-home-user-draft-webkit-studio/8450cabb-61dd-524b-850e-19e315a98ea1/scratchpad/') + 'serve.sh';
 const ZDRAVI = 'http://127.0.0.1:8788/client/login';
 
 async function serverZije() {
   try {
-    const res = await fetch(ZDRAVI, { headers: { connection: 'close' } });
-    return res.status === 200;
+    const res = await fetch(ZDRAVI, { redirect: 'manual', headers: { connection: 'close' } });
+    return res.status === 301;
   } catch {
     return false;
   }
