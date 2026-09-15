@@ -191,6 +191,12 @@ Jak to vypadalo do přepnutí:
 
 ## Aplikace client/ (Astro na Webflow Cloud)
 
+> **Od 15. 9. 2026 `client/` už jen přesměrovává (301) na
+> `webkit.studio/dashboard`** – vývoj běží v repu `webkit-studio/dashboard`.
+> Tabulka přesměrování je v `client/src/middleware.ts` (`PRESUN`) a v
+> `docs/navod.md` nového repa. Zbytek téhle kapitoly je záznam stavu před
+> přesunem.
+
 Prostředí se přestavuje do `client/` – Astro + Cloudflare Workers + D1,
 nasazované přes Webflow Cloud na `webkit.studio/client`. Nahrazuje Supabase
 (gate.js, admin.js, RLS) serverovou vrstvou: o přístupu rozhoduje

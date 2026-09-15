@@ -29,9 +29,52 @@ function noStore(res: Response): Response {
   return res;
 }
 
+/* Aplikace se přestěhovala na webkit.studio/dashboard (repo
+   webkit-studio/dashboard). Tohle prostředí od 15. 9. 2026 už jen
+   přesměrovává: staré odkazy z e-mailů musí držet, dokud se /client ve
+   Webflow Cloud nezruší. Pořadí pravidel: konkrétní před obecnými, poslední
+   je záchytné. Stejná tabulka je v docs/navod.md nového repa (Přepnutí). */
+const PRESUN: Array<[RegExp, string]> = [
+  [/^\/client\/(.+)\/(v\d+)\/(desktop|mobile)(?:\.html)?$/, '/dashboard/$1/$2/$3'],
+  [/^\/client\/login\/?$/, '/dashboard/login'],
+  [/^\/client\/dashboard\/?$/, '/dashboard'],
+  [/^\/client\/settings(\/.*)?$/, '/dashboard/nastaveni'],
+  [/^\/client\/admin(\/.*)?$/, '/dashboard'],
+  [/^\/client\/([a-z0-9-]+)\/prehled\/?$/, '/dashboard/projekty/$1'],
+  [/^\/client\/([a-z0-9-]+)\/(ukoly|dokumenty|podklady|navrhy|faktury|zmeny)\/?$/, '/dashboard/projekty/$1/$2'],
+  [/^\/client\/([a-z0-9-]+)\/?$/, '/dashboard/projekty/$1'],
+  [/^\/client\/?$/, '/dashboard'],
+  [/^\/client\/(.*)$/, '/dashboard/$1']
+];
+
+export function novaAdresa(pathname: string): string | null {
+  for (const [vzor, cil] of PRESUN) {
+    if (vzor.test(pathname)) return pathname.replace(vzor, cil);
+  }
+  return null;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
-  const db = getDb();
   const url = new URL(context.request.url);
+
+  /* Trvalé přesměrování do nové aplikace - před databází i přihlášením,
+     tohle prostředí už nic jiného nedělá. `next` z odkazu na přihlášení se
+     přepíše stejnou tabulkou, aby člověk po přihlášení neskončil zpátky
+     na /client. Relativní Location: Worker vidí interní adresu Webflow
+     Cloud, ne veřejnou doménu. */
+  const cil = novaAdresa(url.pathname);
+  if (cil) {
+    const params = new URLSearchParams(url.search);
+    const next = params.get('next');
+    if (next !== null) {
+      const dal = next.startsWith('/client') ? novaAdresa(next.split('?')[0]) : null;
+      if (dal) params.set('next', dal); else params.delete('next');
+    }
+    const q = params.toString();
+    return noStore(context.redirect(cil + (q ? '?' + q : ''), 301));
+  }
+
+  const db = getDb();
 
   /* cesta bez mount pathu, ať se logika nemusí starat o /client prefix */
   const path = url.pathname.replace(/^\/client/, '') || '/';
